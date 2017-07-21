@@ -228,7 +228,7 @@ In Eclipse:
 * In the **Project Explorer**, Right click on `demo_SE_module` > Properties > Java Build Path > Libraries > Add External Jars
 * Find the `postgresql-42.0.0` jar in the SE_module folder and click *OK*
 * Find the `SE_module` jar in the SE_module folder and click *OK* and again on **OK**. 
-* * In the **Project Explorer**, Right click on `demo_SE_module` > Run Configurations > Java Application 
+* In the **Project Explorer**, Right click on `demo_SE_module` > Run Configurations > Java Application 
 * In the **Main** tab, search the **Main class* called `demo_main`
 * In the **Arguments** tab, in the **Program arguments** field, type the path to a test CSV file of your choice (there is a test file called lab_simple2000.csv in the git folder)
 * Click on **Run**
