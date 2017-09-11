@@ -39,12 +39,14 @@ import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import javax.crypto.SecretKey;
 
 
 import eu.clarussecure.dataoperations.DataOperationCommand;
-import eu.clarussecure.dataoperations.Mapping;
 
 public class Store {
 	private static SecretKey encryption_Key;
@@ -55,9 +57,9 @@ public class Store {
 	private static String[][] encrypted_content;
 	private static String[] encrypted_attributes;
 	private static String[] extraProtectedAttributeNames = {"index"};
-	private static Mapping mapping = new Mapping();
+	private static Map<String, String> mapping = new HashMap<>();
 	private static ProgressBar bar;
-	
+
 	private static ArrayList<Object> index;
 
 
@@ -88,13 +90,13 @@ public class Store {
 		attributes = attributeNames;
 
 		System.out.println("\nStep 03: Generate secure index");
-		//ArrayList<Object> index = BuildIndex.buildIndex(attributes, contents, prfKey, permKey);	
-		index = BuildIndex.buildIndex(attributes, contents, prfKey, permKey);	
+		//ArrayList<Object> index = BuildIndex.buildIndex(attributes, contents, prfKey, permKey);
+		index = BuildIndex.buildIndex(attributes, contents, prfKey, permKey);
 
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		ObjectOutputStream byte_index = new ObjectOutputStream(byteOut);
 		byte_index.writeObject(index);
-	
+
 		InputStream is_index = new ByteArrayInputStream(byteOut.toByteArray());
 		byte_index.close();
 		byteOut.close();
@@ -103,7 +105,7 @@ public class Store {
 		encrypted_attributes = new String[attributes.length+1];
 		encrypted_content = new String[contents.length][contents[0].length+1];
 
-		
+
 		System.out.println("\n\nStep 04: Encrypt attributes and data");
 
 		// Encrypt attributes
@@ -114,7 +116,7 @@ public class Store {
 			encrypted_attributes[i] = Encryptor.encrypt(attributes[i], newSK);
 		}
 		encrypted_attributes[attributeNames.length]="rowID";
-		
+
 		// Encrypt data
 		bar = new ProgressBar();
 		bar.update(0, contents.length);

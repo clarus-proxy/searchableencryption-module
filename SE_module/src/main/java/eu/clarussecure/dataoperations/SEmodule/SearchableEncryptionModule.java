@@ -41,7 +41,9 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 
@@ -71,7 +73,7 @@ public class SearchableEncryptionModule implements DataOperation {
 	public List<DataOperationCommand> get(String[] attributeNames, Criteria[] criteria) {
 		/**
 		 * Generates one or several SE queries
-		 */		
+		 */
 		List<DataOperationCommand> SEquery = null;
 		try {
 			SEquery = Query.search_with_SE(attributeNames, criteria);
@@ -87,7 +89,7 @@ public class SearchableEncryptionModule implements DataOperation {
 			List<String[][]> contents) {
 		/**
 		 * Decrypts the retrieved content
-		 */		
+		 */
 		List<DataOperationResult> SEresult = null;
 		try {
 			try {
@@ -104,9 +106,9 @@ public class SearchableEncryptionModule implements DataOperation {
 	}
 
 	@Override
-	public List<Mapping> head(String[] attributeNames) {
-		List<Mapping> output = new ArrayList<Mapping>();
-		Mapping se_mapping = new Mapping();
+	public List<Map<String, String>> head(String[] attributeNames) {
+		List<Map<String, String>> output = new ArrayList<>();
+		Map<String, String> se_mapping = new HashMap<>();
 		System.out.println("Loading search keys");
 		String ksName = "clarus_keystore";
 		char[] ksPassword = KeyManagementUtils.askPassword(ksName);

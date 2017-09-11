@@ -34,14 +34,14 @@
 package eu.clarussecure.dataoperations.SEmodule;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import eu.clarussecure.dataoperations.Criteria;
 import eu.clarussecure.dataoperations.DataOperationCommand;
-import eu.clarussecure.dataoperations.Mapping;
 
 public class SearchableEncryptionCommand extends DataOperationCommand{
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = -779784486199839788L;
 
@@ -49,7 +49,7 @@ public class SearchableEncryptionCommand extends DataOperationCommand{
 	public SearchableEncryptionCommand(){
 		super();
 	}
-	
+
     /**
      * Names of the protected attributes
      */
@@ -73,7 +73,7 @@ public class SearchableEncryptionCommand extends DataOperationCommand{
      * Mapping between the original attribute names
      * and the protected attribute names.
      */
-    private Mapping mapping;
+    private Map<String, String> mapping;
 
     /**
      * Protected content. Formatted the same
@@ -103,7 +103,7 @@ public class SearchableEncryptionCommand extends DataOperationCommand{
     }
 
     @Override
-	public Mapping getMapping() {
+	public Map<String, String> getMapping() {
         return mapping;
     }
 
@@ -117,26 +117,31 @@ public class SearchableEncryptionCommand extends DataOperationCommand{
         return protectedContents;
     }
 
-	public void setProtectedAttributeNames(String[] protectedAttributeNames) {
+	@Override
+    public void setProtectedAttributeNames(String[] protectedAttributeNames) {
 		this.protectedAttributeNames = protectedAttributeNames;
 	}
 
-	public void setExtraProtectedAttributeNames(
+	@Override
+    public void setExtraProtectedAttributeNames(
 			String[] extraProtectedAttributeNames) {
 		this.extraProtectedAttributeNames = extraProtectedAttributeNames;
 	}
 
-	public void setProtectedContents(String[][] protectedContents) {
+	@Override
+    public void setProtectedContents(String[][] protectedContents) {
 		this.protectedContents = protectedContents;
 	}
 
-	public void setExtraBinaryContent(InputStream[] extraBinaryContent) {
+	@Override
+    public void setExtraBinaryContent(InputStream[] extraBinaryContent) {
 		this.extraBinaryContent = extraBinaryContent;
 	}
 
-	public void setMapping(Mapping mapping) {
+	@Override
+    public void setMapping(Map<String, String> mapping) {
 		this.mapping = mapping;
 	}
 
-	
+
 }
