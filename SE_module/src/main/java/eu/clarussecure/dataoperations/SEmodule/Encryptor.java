@@ -44,103 +44,99 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-
 //import org.apache.commons.codec.binary.Base64;
 import java.util.Base64;
 
-
 public class Encryptor {
-	public static String encrypt(String key, String value) {
-		try {
-			SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
-			IvParameterSpec iv = new IvParameterSpec(skeySpec.getEncoded());
+    public static String encrypt(String key, String value) {
+        try {
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+            IvParameterSpec iv = new IvParameterSpec(skeySpec.getEncoded());
 
-			Cipher cipher = Cipher.getInstance(Constants.transformation);
-			cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+            Cipher cipher = Cipher.getInstance(Constants.transformation);
+            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
 
-			byte[] encrypted = cipher.doFinal(value.getBytes());
-			return Base64.getEncoder().encodeToString(encrypted);
+            byte[] encrypted = cipher.doFinal(value.getBytes());
+            return Base64.getEncoder().encodeToString(encrypted);
 
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
-		return null;
-	}
-	
-	public static String encrypt(String Data, Key key) throws Exception {
-		IvParameterSpec iv = new IvParameterSpec(key.getEncoded());
-		SecretKeySpec skeySpec = new SecretKeySpec(key.getEncoded(), "AES");
-		Cipher c = Cipher.getInstance(Constants.transformation);
-		c.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
-		byte[] encVal = c.doFinal(Data.getBytes(Constants.charset));
-		String encryptedValue = Base64.getEncoder().encodeToString(encVal);
-		return encryptedValue;
-	}
+        return null;
+    }
 
-	public static String decrypt(String key, String encrypted) {
-		try {
-			SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
-			IvParameterSpec iv = new IvParameterSpec(skeySpec.getEncoded());
+    public static String encrypt(String Data, Key key) throws Exception {
+        IvParameterSpec iv = new IvParameterSpec(key.getEncoded());
+        SecretKeySpec skeySpec = new SecretKeySpec(key.getEncoded(), "AES");
+        Cipher c = Cipher.getInstance(Constants.transformation);
+        c.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+        byte[] encVal = c.doFinal(Data.getBytes(Constants.charset));
+        String encryptedValue = Base64.getEncoder().encodeToString(encVal);
+        return encryptedValue;
+    }
 
-			Cipher cipher = Cipher.getInstance(Constants.transformation);
-			cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+    public static String decrypt(String key, String encrypted) {
+        try {
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+            IvParameterSpec iv = new IvParameterSpec(skeySpec.getEncoded());
 
-			byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));
+            Cipher cipher = Cipher.getInstance(Constants.transformation);
+            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
 
-			return new String(original);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+            byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));
 
-		return null;
-	}
-	
-	public static String decrypt(String encryptedData, Key key) throws Exception {
-		IvParameterSpec iv = new IvParameterSpec(key.getEncoded());
-		SecretKeySpec skeySpec = new SecretKeySpec(key.getEncoded(), "AES");
-		Cipher c = Cipher.getInstance(Constants.transformation);
-		c.init(Cipher.DECRYPT_MODE, skeySpec, iv);
-		byte[] decordedValue = Base64.getDecoder().decode(encryptedData);
-		byte[] decValue = c.doFinal(decordedValue);
-		String decryptedValue = new String(decValue);
-		return decryptedValue;
-	}
+            return new String(original);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
-	public static byte[] prf(String a, SecretKey key) {
-		Mac mac;
-		try {
-			mac = Mac.getInstance(Constants.prf);
-			mac.init(key);
+        return null;
+    }
 
-			byte[] b = a.getBytes(Constants.charset);
-			return mac.doFinal(b);
+    public static String decrypt(String encryptedData, Key key) throws Exception {
+        IvParameterSpec iv = new IvParameterSpec(key.getEncoded());
+        SecretKeySpec skeySpec = new SecretKeySpec(key.getEncoded(), "AES");
+        Cipher c = Cipher.getInstance(Constants.transformation);
+        c.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+        byte[] decordedValue = Base64.getDecoder().decode(encryptedData);
+        byte[] decValue = c.doFinal(decordedValue);
+        String decryptedValue = new String(decValue);
+        return decryptedValue;
+    }
 
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			e.printStackTrace();
-		}
+    public static byte[] prf(String a, SecretKey key) {
+        Mac mac;
+        try {
+            mac = Mac.getInstance(Constants.prf);
+            mac.init(key);
 
-		return null;
-	}
+            byte[] b = a.getBytes(Constants.charset);
+            return mac.doFinal(b);
 
-	
-	public static String Xor(String a, String XorKey){
-		
-		char[] key = XorKey.toCharArray();
-		StringBuilder output = new StringBuilder();
-		
-		int aL = a.length();
-		int kL = key.length;
-				
-		for(int i = 0; i < aL; i++) {
-			output.append((char) (a.charAt(i) ^ key[i % kL]));
-		}
-		return output.toString();
-	}
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static String Xor(String a, String XorKey) {
+
+        char[] key = XorKey.toCharArray();
+        StringBuilder output = new StringBuilder();
+
+        int aL = a.length();
+        int kL = key.length;
+
+        for (int i = 0; i < aL; i++) {
+            output.append((char) (a.charAt(i) ^ key[i % kL]));
+        }
+        return output.toString();
+    }
 
 }
-

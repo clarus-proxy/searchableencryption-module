@@ -50,96 +50,91 @@ import javax.crypto.SecretKey;
 import eu.clarussecure.dataoperations.*;
 
 public class SearchableEncryptionModule implements DataOperation {
-	@Override
-	public List<DataOperationCommand> post(String[] attributeNames,String[][] contents) {
-		/**
-		 * Generates keying material
-		 * Builds the dictionary of distinct keywords
-		 * Creates the secure search index
-		 * Encrypts the data
-		 */
-		List<DataOperationCommand> SEcommand = null;
-		try {
-			SEcommand = Store.store_with_SE(attributeNames,contents);
-		} catch (Exception e) {
-			System.out.println("[FAILURE]: Searchable Encryption post");
-			System.out.println(e);
-			System.exit(1);
-		}
-		return SEcommand;
-	}
+    @Override
+    public List<DataOperationCommand> post(String[] attributeNames, String[][] contents) {
+        /**
+         * Generates keying material
+         * Builds the dictionary of distinct keywords
+         * Creates the secure search index
+         * Encrypts the data
+         */
+        List<DataOperationCommand> SEcommand = null;
+        try {
+            SEcommand = Store.store_with_SE(attributeNames, contents);
+        } catch (Exception e) {
+            System.out.println("[FAILURE]: Searchable Encryption post");
+            System.out.println(e);
+            System.exit(1);
+        }
+        return SEcommand;
+    }
 
-	@Override
-	public List<DataOperationCommand> get(String[] attributeNames, Criteria[] criteria) {
-		/**
-		 * Generates one or several SE queries
-		 */
-		List<DataOperationCommand> SEquery = null;
-		try {
-			SEquery = Query.search_with_SE(attributeNames, criteria);
-		} catch (Exception e) {
-			System.exit(1);
+    @Override
+    public List<DataOperationCommand> get(String[] attributeNames, Criteria[] criteria) {
+        /**
+         * Generates one or several SE queries
+         */
+        List<DataOperationCommand> SEquery = null;
+        try {
+            SEquery = Query.search_with_SE(attributeNames, criteria);
+        } catch (Exception e) {
+            System.exit(1);
 
-		}
-		return SEquery;
-	}
+        }
+        return SEquery;
+    }
 
-	@Override
-	public List<DataOperationResult> get(List<DataOperationCommand> promise,
-			List<String[][]> contents) {
-		/**
-		 * Decrypts the retrieved content
-		 */
-		List<DataOperationResult> SEresult = null;
-		try {
-			try {
-				SEresult = Retrieve.decrypt_result(promise, contents);
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		} catch (KeyStoreException | NoSuchAlgorithmException
-				| CertificateException | UnrecoverableEntryException
-				| IOException e) {
-			e.printStackTrace();
-		}
-		return SEresult;
-	}
+    @Override
+    public List<DataOperationResult> get(List<DataOperationCommand> promise, List<String[][]> contents) {
+        /**
+         * Decrypts the retrieved content
+         */
+        List<DataOperationResult> SEresult = null;
+        try {
+            try {
+                SEresult = Retrieve.decrypt_result(promise, contents);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | UnrecoverableEntryException
+                | IOException e) {
+            e.printStackTrace();
+        }
+        return SEresult;
+    }
 
-	@Override
-	public List<Map<String, String>> head(String[] attributeNames) {
-		List<Map<String, String>> output = new ArrayList<>();
-		Map<String, String> se_mapping = new HashMap<>();
-		System.out.println("Loading search keys");
-		String ksName = "clarus_keystore";
-		char[] ksPassword = KeyManagementUtils.askPassword(ksName);
-		KeyStore myKS;
-		try {
-			myKS = KeyManagementUtils.loadKeyStore(ksName, ksPassword);
-			SecretKey encryption_Key = KeyManagementUtils.loadSecretKey(myKS, "encKey", ksPassword);
+    @Override
+    public List<Map<String, String>> head(String[] attributeNames) {
+        List<Map<String, String>> output = new ArrayList<>();
+        Map<String, String> se_mapping = new HashMap<>();
+        System.out.println("Loading search keys");
+        String ksName = "clarus_keystore";
+        char[] ksPassword = KeyManagementUtils.askPassword(ksName);
+        KeyStore myKS;
+        try {
+            myKS = KeyManagementUtils.loadKeyStore(ksName, ksPassword);
+            SecretKey encryption_Key = KeyManagementUtils.loadSecretKey(myKS, "encKey", ksPassword);
 
-			for(int i=0; i<attributeNames.length; i++){
-				SecretKey newSK = KeyManagementUtils.hashAESKey(encryption_Key,
-						Integer.toString(i + 1));
-				se_mapping.put(attributeNames[0], Encryptor.encrypt(attributeNames[i], newSK));
-			}
-		} catch (Exception e) {
-			System.out.println("[FAILURE]");
-			e.printStackTrace();
-		}
-		output.add(se_mapping);
-		return output;
-	}
+            for (int i = 0; i < attributeNames.length; i++) {
+                SecretKey newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + 1));
+                se_mapping.put(attributeNames[0], Encryptor.encrypt(attributeNames[i], newSK));
+            }
+        } catch (Exception e) {
+            System.out.println("[FAILURE]");
+            e.printStackTrace();
+        }
+        output.add(se_mapping);
+        return output;
+    }
 
-	@Override
-	public List<DataOperationCommand> put(String[] attributeNames,
-			Criteria[] criteria, String[][] contents) {
-		return null;
-	}
+    @Override
+    public List<DataOperationCommand> put(String[] attributeNames, Criteria[] criteria, String[][] contents) {
+        return null;
+    }
 
-	@Override
-	public List<DataOperationCommand> delete(String[] attributeNames,
-			Criteria[] criteria) {
-		return null;
-	}
+    @Override
+    public List<DataOperationCommand> delete(String[] attributeNames, Criteria[] criteria) {
+        return null;
+    }
 
 }

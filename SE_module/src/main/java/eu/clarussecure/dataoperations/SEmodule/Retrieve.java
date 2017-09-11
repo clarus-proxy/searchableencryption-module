@@ -50,66 +50,68 @@ import eu.clarussecure.dataoperations.DataOperationResult;
 
 public class Retrieve {
 
-	public static List<DataOperationResult> decrypt_result(
-			List<DataOperationCommand> promise, List<String[][]> contents) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, SQLException {
+    public static List<DataOperationResult> decrypt_result(List<DataOperationCommand> promise,
+            List<String[][]> contents) throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+            IOException, UnrecoverableEntryException, SQLException {
 
-		// Declare output
-		List<DataOperationResult> output = new ArrayList<DataOperationResult>();
-		SearchableEncryptionResponse SE_search_response = new SearchableEncryptionResponse();;
+        // Declare output
+        List<DataOperationResult> output = new ArrayList<DataOperationResult>();
+        SearchableEncryptionResponse SE_search_response = new SearchableEncryptionResponse();
+        ;
 
+        // Load encryption key
+        String ksName = "clarus_keystore";
+        char[] ksPassword = KeyManagementUtils.askPassword(ksName);
+        KeyStore myKS = KeyManagementUtils.loadKeyStore(ksName, ksPassword);
+        SecretKey encryption_Key = KeyManagementUtils.loadSecretKey(myKS, "encKey", ksPassword);
 
-		// Load encryption key
-		String ksName = "clarus_keystore";
-		char[] ksPassword = KeyManagementUtils.askPassword(ksName);
-		KeyStore myKS = KeyManagementUtils.loadKeyStore(ksName, ksPassword);
-		SecretKey encryption_Key = KeyManagementUtils.loadSecretKey(myKS, "encKey", ksPassword);
+        // Decrypt attributes
+        String[] encrypted_attribute_names = promise.get(0).getProtectedAttributeNames();
+        String[] decrypted_attribute_names = new String[encrypted_attribute_names.length - 1];
+        SecretKey newSK;
 
-		// Decrypt attributes
-		String[] encrypted_attribute_names = promise.get(0).getProtectedAttributeNames();
-		String[] decrypted_attribute_names = new String[encrypted_attribute_names.length-1];
-		SecretKey newSK;
-		
-		for (int i = 0; i < decrypted_attribute_names.length; i++) {
-			try {
-				newSK = KeyManagementUtils.hashAESKey(encryption_Key,
-						Integer.toString(i + 1));
-				decrypted_attribute_names[i] = Encryptor.decrypt(encrypted_attribute_names[i], newSK);
-			} catch (Exception e) {
-				System.out.println("Decryption failure");
-				e.printStackTrace();
-			}
+        for (int i = 0; i < decrypted_attribute_names.length; i++) {
+            try {
+                newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + 1));
+                decrypted_attribute_names[i] = Encryptor.decrypt(encrypted_attribute_names[i], newSK);
+            } catch (Exception e) {
+                System.out.println("Decryption failure");
+                e.printStackTrace();
+            }
 
-		}
+        }
 
-		String[][] encrypted_retrieved_results = contents.get(0);
-		String[][] decrypted_content = new String[encrypted_retrieved_results.length][encrypted_retrieved_results[0].length-1];
+        String[][] encrypted_retrieved_results = contents.get(0);
+        String[][] decrypted_content = new String[encrypted_retrieved_results.length][encrypted_retrieved_results[0].length
+                - 1];
 
-		// Decrypt data
-		int row_number;
-/*		for (int i = 0; i < encrypted_retrieved_results.length; i++) {
-			// Retrieve the row_numbers of the retrieved (encrypted rows)
-			// They can be find in the last column of encrypted_retrieved_results matrix
-			row_number[i] = Integer.parseInt(encrypted_retrieved_results[i][encrypted_retrieved_results[0].length - 1])-1;
-		}*/
-		ProgressBar bar = new ProgressBar();
-		bar.update(0, encrypted_retrieved_results.length);
-		for (int i = 0; i < encrypted_retrieved_results.length; i++) {
-			for (int j = 0; j < encrypted_retrieved_results[0].length - 1; j++) {
-				row_number = Integer.parseInt(encrypted_retrieved_results[i][encrypted_retrieved_results[0].length - 1])-1;
+        // Decrypt data
+        int row_number;
+        /*		for (int i = 0; i < encrypted_retrieved_results.length; i++) {
+        			// Retrieve the row_numbers of the retrieved (encrypted rows)
+        			// They can be find in the last column of encrypted_retrieved_results matrix
+        			row_number[i] = Integer.parseInt(encrypted_retrieved_results[i][encrypted_retrieved_results[0].length - 1])-1;
+        		}*/
+        ProgressBar bar = new ProgressBar();
+        bar.update(0, encrypted_retrieved_results.length);
+        for (int i = 0; i < encrypted_retrieved_results.length; i++) {
+            for (int j = 0; j < encrypted_retrieved_results[0].length - 1; j++) {
+                row_number = Integer.parseInt(encrypted_retrieved_results[i][encrypted_retrieved_results[0].length - 1])
+                        - 1;
 
-				try {
-					newSK = KeyManagementUtils.hashAESKey(encryption_Key,Integer.toString(row_number + j + 1));
-					decrypted_content[i][j] = Encryptor.decrypt(encrypted_retrieved_results[i][j], newSK);
-				} catch (Exception e) {
-					System.out.println("Decryption failure");
-				}
-			}
-			bar.update(i, encrypted_retrieved_results.length);
-		}
-		SE_search_response.setContents(decrypted_content);
-		SE_search_response.setAttributeNames(decrypted_attribute_names);
-		output.add(SE_search_response);
+                try {
+                    newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(row_number + j + 1));
+                    decrypted_content[i][j] = Encryptor.decrypt(encrypted_retrieved_results[i][j], newSK);
+                } catch (Exception e) {
+                    System.out.println("Decryption failure");
+                }
+            }
+            bar.update(i, encrypted_retrieved_results.length);
+        }
+        SE_search_response.setContents(decrypted_content);
+        SE_search_response.setAttributeNames(decrypted_attribute_names);
+        output.add(SE_search_response);
 
-		return output;
-	}
+        return output;
+    }
 }

@@ -35,35 +35,34 @@ package eu.clarussecure.dataoperations.SEmodule;
 
 import eu.clarussecure.dataoperations.DataOperationResponse;
 
-public class SearchableEncryptionResponse extends DataOperationResponse{
-	
+public class SearchableEncryptionResponse extends DataOperationResponse {
+
     /**
-	 * 
-	 */
-	private static final long serialVersionUID = 8805277876762556655L;
-	/**
-     * Reconstructed data.
+     * 
      */
+    private static final long serialVersionUID = 8805277876762556655L;
+    /**
+    * Reconstructed data.
+    */
     private String[][] contents;
     private String[] attributeNames;
 
     @Override
-	public String[][] getContents() {
+    public String[][] getContents() {
         return contents;
     }
 
-	public void setContents(String[][] contents) {
-		this.contents = contents;
-	}
+    public void setContents(String[][] contents) {
+        this.contents = contents;
+    }
 
-	@Override
-	public String[] getAttributeNames() {
-		return attributeNames;
-	}
+    @Override
+    public String[] getAttributeNames() {
+        return attributeNames;
+    }
 
-	public void setAttributeNames(String[] attributeNames) {
-		this.attributeNames = attributeNames;
-	}
-	
-	
+    public void setAttributeNames(String[] attributeNames) {
+        this.attributeNames = attributeNames;
+    }
+
 }

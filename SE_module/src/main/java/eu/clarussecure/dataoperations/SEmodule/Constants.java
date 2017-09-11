@@ -34,16 +34,16 @@
 package eu.clarussecure.dataoperations.SEmodule;
 
 public final class Constants {
-	public static String SEPARATOR = "\\|\\|";
-	public static String transformation = "AES/CTR/PKCS5Padding";
-	public static String charset = "ISO-8859-1";
-	public static String prf = "HmacSHA256";
-	public static String encryptedDB = "_encrypted";
-	public static String indexName = "_index";
-	public static String remoteServer = "127.0.0.1";
-	public static String port = "5432";
-	public static String configPath = "./config.obj";
-	//public static char[] passwd = null;
-	public static char[] passwd = {'c', 'l', 'a', 'r', 'u', 's'};
-	public static String tableName = null;
+    public static String SEPARATOR = "\\|\\|";
+    public static String transformation = "AES/CTR/PKCS5Padding";
+    public static String charset = "ISO-8859-1";
+    public static String prf = "HmacSHA256";
+    public static String encryptedDB = "_encrypted";
+    public static String indexName = "_index";
+    public static String remoteServer = "127.0.0.1";
+    public static String port = "5432";
+    public static String configPath = "./config.obj";
+    //public static char[] passwd = null;
+    public static char[] passwd = { 'c', 'l', 'a', 'r', 'u', 's' };
+    public static String tableName = null;
 }

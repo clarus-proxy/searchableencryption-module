@@ -39,16 +39,15 @@ import java.util.Map;
 import eu.clarussecure.dataoperations.Criteria;
 import eu.clarussecure.dataoperations.DataOperationCommand;
 
-public class SearchableEncryptionCommand extends DataOperationCommand{
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = -779784486199839788L;
+public class SearchableEncryptionCommand extends DataOperationCommand {
+    /**
+     *
+     */
+    private static final long serialVersionUID = -779784486199839788L;
 
-
-	public SearchableEncryptionCommand(){
-		super();
-	}
+    public SearchableEncryptionCommand() {
+        super();
+    }
 
     /**
      * Names of the protected attributes
@@ -86,62 +85,59 @@ public class SearchableEncryptionCommand extends DataOperationCommand{
      */
     protected Criteria[] criteria;
 
-
     @Override
-	public String[] getProtectedAttributeNames() {
+    public String[] getProtectedAttributeNames() {
         return protectedAttributeNames;
     }
 
     @Override
-	public String[] getExtraProtectedAttributeNames() {
+    public String[] getExtraProtectedAttributeNames() {
         return extraProtectedAttributeNames;
     }
 
     @Override
-	public InputStream[] getExtraBinaryContent() {
+    public InputStream[] getExtraBinaryContent() {
         return extraBinaryContent;
     }
 
     @Override
-	public Map<String, String> getMapping() {
+    public Map<String, String> getMapping() {
         return mapping;
     }
 
     @Override
-	public Criteria[] getCriteria() {
+    public Criteria[] getCriteria() {
         return criteria;
     }
 
     @Override
-	public String[][] getProtectedContents() {
+    public String[][] getProtectedContents() {
         return protectedContents;
     }
 
-	@Override
+    @Override
     public void setProtectedAttributeNames(String[] protectedAttributeNames) {
-		this.protectedAttributeNames = protectedAttributeNames;
-	}
+        this.protectedAttributeNames = protectedAttributeNames;
+    }
 
-	@Override
-    public void setExtraProtectedAttributeNames(
-			String[] extraProtectedAttributeNames) {
-		this.extraProtectedAttributeNames = extraProtectedAttributeNames;
-	}
+    @Override
+    public void setExtraProtectedAttributeNames(String[] extraProtectedAttributeNames) {
+        this.extraProtectedAttributeNames = extraProtectedAttributeNames;
+    }
 
-	@Override
+    @Override
     public void setProtectedContents(String[][] protectedContents) {
-		this.protectedContents = protectedContents;
-	}
+        this.protectedContents = protectedContents;
+    }
 
-	@Override
+    @Override
     public void setExtraBinaryContent(InputStream[] extraBinaryContent) {
-		this.extraBinaryContent = extraBinaryContent;
-	}
+        this.extraBinaryContent = extraBinaryContent;
+    }
 
-	@Override
+    @Override
     public void setMapping(Map<String, String> mapping) {
-		this.mapping = mapping;
-	}
-
+        this.mapping = mapping;
+    }
 
 }

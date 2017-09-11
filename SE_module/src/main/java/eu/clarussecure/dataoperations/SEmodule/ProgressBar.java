@@ -30,8 +30,8 @@
  * Contact: Monir AZRAOUI, Melek ÖNEN, Refik MOLVA
  * name.surname(at)eurecom(dot)fr
  *
-*******************************************************************************/package eu.clarussecure.dataoperations.SEmodule;
-
+*******************************************************************************/
+package eu.clarussecure.dataoperations.SEmodule;
 
 public class ProgressBar {
     private StringBuilder progress;
@@ -51,7 +51,7 @@ public class ProgressBar {
      * @param total an int representing the total work
      */
     public void update(int done, int total) {
-        char[] workchars = {'|', '/', '-', '\\'};
+        char[] workchars = { '|', '/', '-', '\\' };
         String format = "\r%3d%% %s %c";
 
         int percent = (++done * 100) / total;
@@ -61,8 +61,7 @@ public class ProgressBar {
             progress.append('#');
         }
 
-        System.out.printf(format, percent, progress,
-         workchars[done % workchars.length]);
+        System.out.printf(format, percent, progress, workchars[done % workchars.length]);
 
         if (done == total) {
             System.out.flush();
