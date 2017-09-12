@@ -69,6 +69,8 @@ public class BuildIndex {
          * and lists the ID of records that contain this keyword (as a linked list)
          */
         System.out.println("Create dictionary");
+        // AKKA fix: clean dictionary (else dictionary grows up with multiple store operations)
+        dictionary.clear();
         int col = attributes.length;
         int row = contents.length;
         ProgressBar bar = new ProgressBar();
@@ -77,7 +79,9 @@ public class BuildIndex {
             String rowID = "row" + String.valueOf(r + 1);
             String[] record = contents[r];
             for (int c = 0; c < col; c++) {
-                String keyword = attributes[c] + "='" + record[c] + "'";
+                // AKKA fix: don't quote values
+                //String keyword = attributes[c] + "='" + record[c] + "'";
+                String keyword = attributes[c] + "=" + record[c];
                 if (!dictionary.containsKey(keyword)) {
                     //the keyword not yet inserted in the dictionary
                     //create a linked list and insert the current ID

@@ -45,14 +45,17 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
-import eu.clarussecure.dataoperations.DataOperationCommand;
 import eu.clarussecure.dataoperations.DataOperationResult;
 
 public class Retrieve {
 
-    public static List<DataOperationResult> decrypt_result(List<DataOperationCommand> promise,
-            List<String[][]> contents) throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
-            IOException, UnrecoverableEntryException, SQLException {
+    // AKKA fix: review method signature to pass encrypted attribute names and new 'indexes' parameter to compute salts
+    //    public static List<DataOperationResult> decrypt_result(List<DataOperationCommand> promise,
+    //            List<String[][]> contents) throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+    //            IOException, UnrecoverableEntryException, SQLException {
+    public static List<DataOperationResult> decrypt_result(String[] encrypted_attribute_names,
+            String[][] encrypted_retrieved_results, int[] indexes) throws KeyStoreException, NoSuchAlgorithmException,
+            CertificateException, IOException, UnrecoverableEntryException, SQLException {
 
         // Declare output
         List<DataOperationResult> output = new ArrayList<DataOperationResult>();
@@ -66,14 +69,19 @@ public class Retrieve {
         SecretKey encryption_Key = KeyManagementUtils.loadSecretKey(myKS, "encKey", ksPassword);
 
         // Decrypt attributes
-        String[] encrypted_attribute_names = promise.get(0).getProtectedAttributeNames();
+        // AKKA fix: encrypted attribute names are passed as a parameter
+        //String[] encrypted_attribute_names = promise.get(0).getProtectedAttributeNames();
         String[] decrypted_attribute_names = new String[encrypted_attribute_names.length - 1];
         SecretKey newSK;
 
         for (int i = 0; i < decrypted_attribute_names.length; i++) {
             try {
-                newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + 1));
-                decrypted_attribute_names[i] = Encryptor.decrypt(encrypted_attribute_names[i], newSK);
+                // AKKA fix: compute salts according to the 'indexes' parameter
+                //newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + 1));
+                newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(indexes[i] + 1));
+                // AKKA fix: decode an attribute which is URL and filename safe (without / character)
+                //decrypted_attribute_names[i] = Encryptor.decrypt(encrypted_attribute_names[i], newSK);
+                decrypted_attribute_names[i] = Encryptor.decrypt(encrypted_attribute_names[i], newSK, true);
             } catch (Exception e) {
                 System.out.println("Decryption failure");
                 e.printStackTrace();
@@ -81,7 +89,8 @@ public class Retrieve {
 
         }
 
-        String[][] encrypted_retrieved_results = contents.get(0);
+        // AKKA fix: encrypted results are passed as a parameter
+        //String[][] encrypted_retrieved_results = contents.get(0);
         String[][] decrypted_content = new String[encrypted_retrieved_results.length][encrypted_retrieved_results[0].length
                 - 1];
 
@@ -100,7 +109,10 @@ public class Retrieve {
                         - 1;
 
                 try {
-                    newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(row_number + j + 1));
+                    // AKKA fix: compute salts according to the 'indexes' parameter
+                    //newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(row_number + j + 1));
+                    newSK = KeyManagementUtils.hashAESKey(encryption_Key,
+                            Integer.toString(row_number + indexes[j] + 1));
                     decrypted_content[i][j] = Encryptor.decrypt(encrypted_retrieved_results[i][j], newSK);
                 } catch (Exception e) {
                     System.out.println("Decryption failure");

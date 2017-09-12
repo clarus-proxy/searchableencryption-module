@@ -45,5 +45,7 @@ public final class Constants {
     public static String configPath = "./config.obj";
     //public static char[] passwd = null;
     public static char[] passwd = { 'c', 'l', 'a', 'r', 'u', 's' };
-    public static String tableName = null;
+    // AKKA fix: give a table name
+    //public static String tableName = null;
+    public static String tableName = "se_index";
 }

@@ -64,8 +64,8 @@ public class KeyManagementUtils {
          * 1) Generate the encryption key and 2 additional keys for index generation
          * 2) Create the key store
          * 3) Store generated keys in the key store
-         * 
-         * IN: - 
+         *
+         * IN: -
          * OUT: Array of 3 keys
          */
 
@@ -105,6 +105,23 @@ public class KeyManagementUtils {
         storeSecretKey(myKS, prfKey, "y_Key", ksPassword);
         storeSecretKey(myKS, permKey, "z_Key", ksPassword);
         storeKeyStore(ksName, myKS, ksPassword);
+        return output;
+    }
+
+    // AKKA fix: new function to load the secret keys (used by store_with_SE)
+    public static SecretKey[] loadSecretKeys() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+            IOException, UnrecoverableEntryException {
+        /*
+         * Load keys from a Java keystore
+         */
+        String ksName = "clarus_keystore";
+        char[] ksPassword = askPassword(ksName);
+        // load keystore
+        KeyStore myKS = loadKeyStore(ksName, ksPassword);
+        SecretKey encryption_Key = loadSecretKey(myKS, "encKey", ksPassword);
+        SecretKey prfKey = loadSecretKey(myKS, "y_Key", ksPassword);
+        SecretKey permKey = loadSecretKey(myKS, "z_Key", ksPassword);
+        SecretKey[] output = new SecretKey[] { encryption_Key, prfKey, permKey };
         return output;
     }
 

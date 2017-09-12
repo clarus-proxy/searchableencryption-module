@@ -55,14 +55,17 @@ public class Store {
     private static String[] attributes;
     private static String[][] encrypted_content;
     private static String[] encrypted_attributes;
-    private static String[] extraProtectedAttributeNames = { "index" };
+    private static String[] extraProtectedAttributeNames = { Constants.tableName + "/" + Constants.indexName };
     private static Map<String, String> mapping = new HashMap<>();
     private static ProgressBar bar;
 
     private static ArrayList<Object> index;
 
-    public static final List<DataOperationCommand> store_with_SE(String[] attributeNames, String[][] data_contents)
-            throws Exception {
+    // AKKA fix: new 'indexes' parameter to compute salts
+    //public static final List<DataOperationCommand> store_with_SE(String[] attributeNames, String[][] data_contents)
+    //    throws Exception {
+    public static final List<DataOperationCommand> store_with_SE(String[] attributeNames, String[][] data_contents,
+            int[] indexes) throws Exception {
 
         List<DataOperationCommand> myList = new ArrayList<DataOperationCommand>();
         SearchableEncryptionCommand SE_post_query = new SearchableEncryptionCommand();
@@ -70,7 +73,9 @@ public class Store {
         System.out.println("Step 01: Generate Keying material");
         //Generate keys and store them in key store
         SecretKey[] keys = new SecretKey[3];
-        keys = KeyManagementUtils.procedureKeyGen();
+        // AKKA fix: don't generate secret keys here, just load them
+        //keys = KeyManagementUtils.procedureKeyGen();
+        keys = KeyManagementUtils.loadSecretKeys();
         encryption_Key = keys[0];
         prfKey = keys[1];
         permKey = keys[2];
@@ -104,8 +109,12 @@ public class Store {
         // Encrypt attributes
         SecretKey newSK;
         for (int i = 0; i < attributeNames.length; i++) {
-            newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + 1));
-            encrypted_attributes[i] = Encryptor.encrypt(attributes[i], newSK);
+            // AKKA fix: compute salts according to the 'indexes' parameter
+            //newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + 1));
+            newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(indexes[i] + 1));
+            // AKKA fix: encode attribute to be URL and filename safe (without / character)
+            //encrypted_attributes[i] = Encryptor.encrypt(attributes[i], newSK);
+            encrypted_attributes[i] = Encryptor.encrypt(attributes[i], newSK, true);
         }
         encrypted_attributes[attributeNames.length] = "rowID";
 
@@ -114,7 +123,9 @@ public class Store {
         bar.update(0, contents.length);
         for (int i = 0; i < contents.length; i++) {
             for (int j = 0; j < contents[0].length; j++) {
-                newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + j + 1));
+                // AKKA fix: compute salts according to the 'indexes' parameter
+                //newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + j + 1));
+                newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + 1 + indexes[j]));
                 encrypted_content[i][j] = Encryptor.encrypt(contents[i][j], newSK);
             }
             encrypted_content[i][contents[0].length] = Integer.toString(i + 1);
@@ -128,6 +139,8 @@ public class Store {
          * Creating output
          */
         // Output is a SearchableEncryptionCommand object
+        // AKKA fix: save clear attribute names (proxy needs them)
+        SE_post_query.setAttributeNames(attributeNames);
         SE_post_query.setProtectedAttributeNames(encrypted_attributes);
         SE_post_query.setExtraProtectedAttributeNames(extraProtectedAttributeNames);
         InputStream[] extraBinaryContent = { is_index };

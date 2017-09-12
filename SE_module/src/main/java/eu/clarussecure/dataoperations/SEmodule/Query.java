@@ -13,7 +13,10 @@ import eu.clarussecure.dataoperations.DataOperationCommand;
 
 public class Query {
 
-    static List<DataOperationCommand> search_with_SE(String[] attributeNames, Criteria[] criteria) throws Exception {
+    // AKKA fix: new 'indexes' parameter to compute salts
+    //static List<DataOperationCommand> search_with_SE(String[] attributeNames, Criteria[] criteria) throws Exception {
+    static List<DataOperationCommand> search_with_SE(String[] attributeNames, Criteria[] criteria, int[] indexes)
+            throws Exception {
 
         List<DataOperationCommand> myList = new ArrayList<DataOperationCommand>();
         SearchableEncryptionCommand SE_search_query = new SearchableEncryptionCommand();
@@ -43,21 +46,36 @@ public class Query {
         }
 
         // Encrypt attributes
-        String[] encrypted_attributes = new String[attributeNames.length];
+        // AKKA fix: declare the 'rowID' in the encrypted attributes (proxy has to be aware of added attributes)
+        String[] encrypted_attributes = new String[attributeNames.length + 1];
         SecretKey newSK;
         for (int i = 0; i < attributeNames.length; i++) {
-            newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + 1));
-            encrypted_attributes[i] = Encryptor.encrypt(attributeNames[i], newSK);
+            // AKKA fix: compute salts according to the 'indexes' parameter
+            //newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(i + 1));
+            newSK = KeyManagementUtils.hashAESKey(encryption_Key, Integer.toString(indexes[i] + 1));
+            // AKKA fix: encode attribute to be URL and filename safe (without / character)
+            //encrypted_attributes[i] = Encryptor.encrypt(attributeNames[i], newSK);
+            encrypted_attributes[i] = Encryptor.encrypt(attributeNames[i], newSK, true);
         }
+        // AKKA fix: declare the 'rowID' in the encrypted attributes (proxy has to be aware of added attributes)
+        encrypted_attributes[attributeNames.length] = "rowID";
 
         // Output is a SearchableEncryptionCommand object
         SE_search_query.setProtectedAttributeNames(encrypted_attributes);
         Criteria[] myCriteria = new Criteria[criteria.length];
-        String query = "(select * from search_with_SE((select index from " + Constants.tableName + Constants.indexName
-                + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
-        Criteria trapdoor = new Criteria("rowID", "IN", query);
-        myCriteria[0] = trapdoor;
-        SE_search_query.criteria = myCriteria;
+        // AKKA fix: verify if criteria exists
+        if (criteria.length > 0) {
+            // AKKA fix: build query using the Constant.tableName
+            //String query = "(select * from search_with_SE((select index from " + Constants.tableName + Constants.indexName
+            //        + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
+            String query = "(select * from search_with_SE((select " + Constants.indexName + " from "
+                    + Constants.tableName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
+            Criteria trapdoor = new Criteria("rowID", "IN", query);
+            myCriteria[0] = trapdoor;
+        }
+        //AKKA fix: use setter method instead of access field
+        //SE_search_query.criteria = myCriteria;
+        SE_search_query.setCriteria(myCriteria);
         myList.add(SE_search_query);
 
         return myList;

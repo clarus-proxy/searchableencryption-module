@@ -33,10 +33,6 @@
 *******************************************************************************/
 package eu.clarussecure.dataoperations.SEmodule;
 
-import java.io.InputStream;
-import java.util.Map;
-
-import eu.clarussecure.dataoperations.Criteria;
 import eu.clarussecure.dataoperations.DataOperationCommand;
 
 public class SearchableEncryptionCommand extends DataOperationCommand {
@@ -49,95 +45,96 @@ public class SearchableEncryptionCommand extends DataOperationCommand {
         super();
     }
 
-    /**
-     * Names of the protected attributes
-     */
-    private String[] protectedAttributeNames;
-
-    /**
-     * Names of the binary attributes contained in
-     * the InputStream extraBinaryContent.
-     */
-    private String[] extraProtectedAttributeNames;
-
-    /**
-     * Binary data to append to the call. The
-     * internal structure and parsing of this
-     * data is the responsibility of the module
-     * developer.
-     */
-    private InputStream[] extraBinaryContent;
-
-    /**
-     * Mapping between the original attribute names
-     * and the protected attribute names.
-     */
-    private Map<String, String> mapping;
-
-    /**
-     * Protected content. Formatted the same
-     * way as the original contents.
-     */
-    private String[][] protectedContents;
-
-    /**
-     * Search criteria
-     */
-    protected Criteria[] criteria;
-
-    @Override
-    public String[] getProtectedAttributeNames() {
-        return protectedAttributeNames;
-    }
-
-    @Override
-    public String[] getExtraProtectedAttributeNames() {
-        return extraProtectedAttributeNames;
-    }
-
-    @Override
-    public InputStream[] getExtraBinaryContent() {
-        return extraBinaryContent;
-    }
-
-    @Override
-    public Map<String, String> getMapping() {
-        return mapping;
-    }
-
-    @Override
-    public Criteria[] getCriteria() {
-        return criteria;
-    }
-
-    @Override
-    public String[][] getProtectedContents() {
-        return protectedContents;
-    }
-
-    @Override
-    public void setProtectedAttributeNames(String[] protectedAttributeNames) {
-        this.protectedAttributeNames = protectedAttributeNames;
-    }
-
-    @Override
-    public void setExtraProtectedAttributeNames(String[] extraProtectedAttributeNames) {
-        this.extraProtectedAttributeNames = extraProtectedAttributeNames;
-    }
-
-    @Override
-    public void setProtectedContents(String[][] protectedContents) {
-        this.protectedContents = protectedContents;
-    }
-
-    @Override
-    public void setExtraBinaryContent(InputStream[] extraBinaryContent) {
-        this.extraBinaryContent = extraBinaryContent;
-    }
-
-    @Override
-    public void setMapping(Map<String, String> mapping) {
-        this.mapping = mapping;
-    }
-
+    // AKKA fix: fileds already declared in mother class
+    //    /**
+    //     * Names of the protected attributes
+    //     */
+    //    private String[] protectedAttributeNames;
+    //
+    //    /**
+    //     * Names of the binary attributes contained in
+    //     * the InputStream extraBinaryContent.
+    //     */
+    //    private String[] extraProtectedAttributeNames;
+    //
+    //    /**
+    //     * Binary data to append to the call. The
+    //     * internal structure and parsing of this
+    //     * data is the responsibility of the module
+    //     * developer.
+    //     */
+    //    private InputStream[] extraBinaryContent;
+    //
+    //    /**
+    //     * Mapping between the original attribute names
+    //     * and the protected attribute names.
+    //     */
+    //    private Map<String, String> mapping;
+    //
+    //    /**
+    //     * Protected content. Formatted the same
+    //     * way as the original contents.
+    //     */
+    //    private String[][] protectedContents;
+    //
+    //    /**
+    //     * Search criteria
+    //     */
+    //    protected Criteria[] criteria;
+    //
+    //    @Override
+    //    public String[] getProtectedAttributeNames() {
+    //        return protectedAttributeNames;
+    //    }
+    //
+    //    @Override
+    //    public String[] getExtraProtectedAttributeNames() {
+    //        return extraProtectedAttributeNames;
+    //    }
+    //
+    //    @Override
+    //    public InputStream[] getExtraBinaryContent() {
+    //        return extraBinaryContent;
+    //    }
+    //
+    //    @Override
+    //    public Map<String, String> getMapping() {
+    //        return mapping;
+    //    }
+    //
+    //    @Override
+    //    public Criteria[] getCriteria() {
+    //        return criteria;
+    //    }
+    //
+    //    @Override
+    //    public String[][] getProtectedContents() {
+    //        return protectedContents;
+    //    }
+    //
+    //    @Override
+    //    public void setProtectedAttributeNames(String[] protectedAttributeNames) {
+    //        this.protectedAttributeNames = protectedAttributeNames;
+    //    }
+    //
+    //    @Override
+    //    public void setExtraProtectedAttributeNames(String[] extraProtectedAttributeNames) {
+    //        this.extraProtectedAttributeNames = extraProtectedAttributeNames;
+    //    }
+    //
+    //    @Override
+    //    public void setProtectedContents(String[][] protectedContents) {
+    //        this.protectedContents = protectedContents;
+    //    }
+    //
+    //    @Override
+    //    public void setExtraBinaryContent(InputStream[] extraBinaryContent) {
+    //        this.extraBinaryContent = extraBinaryContent;
+    //    }
+    //
+    //    @Override
+    //    public void setMapping(Map<String, String> mapping) {
+    //        this.mapping = mapping;
+    //    }
+    //
 }

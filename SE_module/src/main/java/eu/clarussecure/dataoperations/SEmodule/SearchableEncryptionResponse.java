@@ -38,31 +38,33 @@ import eu.clarussecure.dataoperations.DataOperationResponse;
 public class SearchableEncryptionResponse extends DataOperationResponse {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 8805277876762556655L;
-    /**
-    * Reconstructed data.
-    */
-    private String[][] contents;
-    private String[] attributeNames;
-
-    @Override
-    public String[][] getContents() {
-        return contents;
-    }
+    // AKKA fix: fields already declared in mother class
+    //    /**
+    //    * Reconstructed data.
+    //    */
+    //    private String[][] contents;
+    //    private String[] attributeNames;
+    //
+    //    @Override
+    //    public String[][] getContents() {
+    //        return contents;
+    //    }
 
     public void setContents(String[][] contents) {
         this.contents = contents;
     }
 
-    @Override
-    public String[] getAttributeNames() {
-        return attributeNames;
-    }
-
-    public void setAttributeNames(String[] attributeNames) {
-        this.attributeNames = attributeNames;
-    }
-
+    // AKKA fix: methods already declared in mother class
+    //    @Override
+    //    public String[] getAttributeNames() {
+    //        return attributeNames;
+    //    }
+    //
+    //    public void setAttributeNames(String[] attributeNames) {
+    //        this.attributeNames = attributeNames;
+    //    }
+    //
 }

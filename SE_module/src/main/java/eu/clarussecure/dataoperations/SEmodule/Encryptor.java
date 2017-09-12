@@ -46,9 +46,16 @@ import javax.crypto.spec.SecretKeySpec;
 
 //import org.apache.commons.codec.binary.Base64;
 import java.util.Base64;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
 
 public class Encryptor {
     public static String encrypt(String key, String value) {
+        return encrypt(key, value, false);
+    }
+
+    // AKKA fix: new safe parameter to specify if encoded value must be URL and filename safe (without / character)
+    public static String encrypt(String key, String value, boolean safe) {
         try {
             SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
             IvParameterSpec iv = new IvParameterSpec(skeySpec.getEncoded());
@@ -57,7 +64,10 @@ public class Encryptor {
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
 
             byte[] encrypted = cipher.doFinal(value.getBytes());
-            return Base64.getEncoder().encodeToString(encrypted);
+            // AKKA fix: use an encoder according to the safe parameter
+            //return Base64.getEncoder().encodeToString(encrypted);
+            Encoder encoder = safe ? Base64.getUrlEncoder() : Base64.getEncoder();
+            return encoder.encodeToString(encrypted);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -67,16 +77,29 @@ public class Encryptor {
     }
 
     public static String encrypt(String Data, Key key) throws Exception {
+        return encrypt(Data, key, false);
+    }
+
+    // AKKA fix: new safe parameter to specify if encoded value must be URL and filename safe (without / character)
+    public static String encrypt(String Data, Key key, boolean safe) throws Exception {
         IvParameterSpec iv = new IvParameterSpec(key.getEncoded());
         SecretKeySpec skeySpec = new SecretKeySpec(key.getEncoded(), "AES");
         Cipher c = Cipher.getInstance(Constants.transformation);
         c.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
         byte[] encVal = c.doFinal(Data.getBytes(Constants.charset));
-        String encryptedValue = Base64.getEncoder().encodeToString(encVal);
+        // AKKA fix: use an encoder according to the safe parameter
+        //String encryptedValue = Base64.getEncoder().encodeToString(encVal);
+        Encoder encoder = safe ? Base64.getUrlEncoder() : Base64.getEncoder();
+        String encryptedValue = encoder.encodeToString(encVal);
         return encryptedValue;
     }
 
     public static String decrypt(String key, String encrypted) {
+        return decrypt(key, encrypted, false);
+    }
+
+    // AKKA fix: new safe parameter to specify if encoded value is URL and filename safe (without / character)
+    public static String decrypt(String key, String encrypted, boolean safe) {
         try {
             SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
             IvParameterSpec iv = new IvParameterSpec(skeySpec.getEncoded());
@@ -84,7 +107,10 @@ public class Encryptor {
             Cipher cipher = Cipher.getInstance(Constants.transformation);
             cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
 
-            byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));
+            // AKKA fix: use a decoder according to the safe parameter
+            //byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));
+            Decoder decoder = safe ? Base64.getUrlDecoder() : Base64.getDecoder();
+            byte[] original = cipher.doFinal(decoder.decode(encrypted));
 
             return new String(original);
         } catch (Exception ex) {
@@ -95,11 +121,19 @@ public class Encryptor {
     }
 
     public static String decrypt(String encryptedData, Key key) throws Exception {
+        return decrypt(encryptedData, key, false);
+    }
+
+    // AKKA fix: new safe parameter to specify if encoded value is URL and filename safe (without / character)
+    public static String decrypt(String encryptedData, Key key, boolean safe) throws Exception {
         IvParameterSpec iv = new IvParameterSpec(key.getEncoded());
         SecretKeySpec skeySpec = new SecretKeySpec(key.getEncoded(), "AES");
         Cipher c = Cipher.getInstance(Constants.transformation);
         c.init(Cipher.DECRYPT_MODE, skeySpec, iv);
-        byte[] decordedValue = Base64.getDecoder().decode(encryptedData);
+        // AKKA fix: use a decoder according to the safe parameter
+        //byte[] decordedValue = Base64.getDecoder().decode(encryptedData);
+        Decoder decoder = safe ? Base64.getUrlDecoder() : Base64.getDecoder();
+        byte[] decordedValue = decoder.decode(encryptedData);
         byte[] decValue = c.doFinal(decordedValue);
         String decryptedValue = new String(decValue);
         return decryptedValue;
