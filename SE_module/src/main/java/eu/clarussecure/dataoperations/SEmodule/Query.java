@@ -5,13 +5,16 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-
 import javax.crypto.SecretKey;
+
+import org.apache.log4j.Logger;
 
 import eu.clarussecure.dataoperations.Criteria;
 import eu.clarussecure.dataoperations.DataOperationCommand;
 
 public class Query {
+
+    private static Logger logger = Logger.getLogger(Query.class);
 
     // AKKA fix: new 'indexes' parameter to compute salts
     //static List<DataOperationCommand> search_with_SE(String[] attributeNames, Criteria[] criteria) throws Exception {
@@ -20,11 +23,12 @@ public class Query {
 
         List<DataOperationCommand> myList = new ArrayList<DataOperationCommand>();
         SearchableEncryptionCommand SE_search_query = new SearchableEncryptionCommand();
+        ArrayList<Criteria> myCriteria = new ArrayList<Criteria>();
 
         String keyword;
         String[] trap = null;
 
-        System.out.println("Loading search keys");
+        logger.info("Loading search keys");
         String ksName = "clarus_keystore";
         char[] ksPassword = KeyManagementUtils.askPassword(ksName);
         KeyStore myKS = KeyManagementUtils.loadKeyStore(ksName, ksPassword);
@@ -32,8 +36,23 @@ public class Query {
         SecretKey z_Key = KeyManagementUtils.loadSecretKey(myKS, "z_Key", ksPassword);
         SecretKey encryption_Key = KeyManagementUtils.loadSecretKey(myKS, "encKey", ksPassword);
 
-        System.out.println("\nGenerating trapdoors...\n");
+        logger.info("\nGenerating trapdoors...\n");
+        logger.info("Number of criteria = " + criteria.length);
+        for (int tt = 0; tt < criteria.length; tt++) {
+            logger.info(
+                    criteria[tt].getAttributeName() + "" + criteria[tt].getOperator() + " " + criteria[tt].getValue());
+        }
         for (int i = 0; i < criteria.length; i++) {
+            /*// extract keyword from criteria
+            keyword = criteria[i].getAttributeName() + criteria[i].getOperator() + criteria[i].getValue();
+            // generate trapdoor from that keyword
+            try {
+            trap = generateTrapdoor(keyword, y_Key, z_Key);
+            } catch (IOException e) {
+            logger.info("[FAILURE:] Trapdoor generation for keyword " + keyword);
+            }
+            }*/
+
             // extract keyword from criteria
             keyword = criteria[i].getAttributeName() + criteria[i].getOperator() + criteria[i].getValue();
 
@@ -41,8 +60,12 @@ public class Query {
             try {
                 trap = generateTrapdoor(keyword, y_Key, z_Key);
             } catch (IOException e) {
-                System.out.println("[FAILURE:] Trapdoor generation for keyword " + keyword);
+                logger.info("[FAILURE:] Trapdoor generation for keyword " + keyword);
             }
+            String query = "(select * from search_with_SE((select " + "index" + " from " + Constants.tableName
+                    + Constants.indexName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
+            Criteria trapdoor = new Criteria("rowID", "IN", query);
+            myCriteria.add(trapdoor);
         }
 
         // Encrypt attributes
@@ -62,26 +85,27 @@ public class Query {
 
         // Output is a SearchableEncryptionCommand object
         SE_search_query.setProtectedAttributeNames(encrypted_attributes);
-        Criteria[] myCriteria = new Criteria[criteria.length];
         // AKKA fix: verify if criteria exists
         if (criteria.length > 0) {
             // AKKA fix: build query using the Constant.tableName
             //String query = "(select * from search_with_SE((select index from " + Constants.tableName + Constants.indexName
             //        + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
-            String query = "(select * from search_with_SE((select " + Constants.indexName + " from "
-                    + Constants.tableName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
-            Criteria trapdoor = new Criteria("rowID", "IN", query);
-            myCriteria[0] = trapdoor;
+            //String query = "(select * from search_with_SE((select " + "index" + " from " + Constants.tableName
+            //        + Constants.indexName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
+            //Criteria trapdoor = new Criteria("rowID", "IN", query);
+            //myCriteria.add(trapdoor);
         }
+
         //AKKA fix: use setter method instead of access field
         //SE_search_query.criteria = myCriteria;
-        SE_search_query.setCriteria(myCriteria);
+        SE_search_query.setCriteria(myCriteria.toArray(new Criteria[myCriteria.size()]));
+
         myList.add(SE_search_query);
 
         return myList;
     }
 
-    public static String[] generateTrapdoor(String keyword, SecretKey prfKey, SecretKey permKey) throws Exception {
+    private static String[] generateTrapdoor(String keyword, SecretKey prfKey, SecretKey permKey) throws Exception {
         String[] trapdoor = new String[2];
         trapdoor[0] = Base64.getEncoder().encodeToString(Encryptor.prf(keyword, prfKey));//XORkey
         trapdoor[1] = Encryptor.encrypt(keyword, permKey);//posInT

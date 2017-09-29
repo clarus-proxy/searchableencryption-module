@@ -44,9 +44,11 @@ import java.util.Set;
 
 import javax.crypto.SecretKey;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.log4j.Logger;
 
 public class BuildIndex {
+    private static Logger logger = Logger.getLogger(BuildIndex.class);
 
     private static Map<String, LinkedList<String>> dictionary = new HashMap<String, LinkedList<String>>();
     private static int numberOfElements = 0;
@@ -68,13 +70,11 @@ public class BuildIndex {
          * Each entry of the dictionary corresponds to a particular keyword
          * and lists the ID of records that contain this keyword (as a linked list)
          */
-        System.out.println("Create dictionary");
+        logger.info("Create dictionary");
         // AKKA fix: clean dictionary (else dictionary grows up with multiple store operations)
         dictionary.clear();
         int col = attributes.length;
         int row = contents.length;
-        ProgressBar bar = new ProgressBar();
-        bar.update(0, row);
         for (int r = 0; r < row; r++) {
             String rowID = "row" + String.valueOf(r + 1);
             String[] record = contents[r];
@@ -99,14 +99,13 @@ public class BuildIndex {
                     dictionary.put(keyword, ll);
                 }
             }
-            bar.update(r, row);
         }
         return dictionary;
     }
 
     public static ArrayList<Object> BuildAandT(Map<String, LinkedList<String>> dictionary, int sizeOfA,
             SecretKey prfKey, SecretKey permKey) throws Exception {
-        System.out.println("Create index from dictionary");
+        logger.info("Create index from dictionary");
         int counter = 0;
         String[] arrayA = new String[sizeOfA];
         CuckooHashMap<String, String> T = new CuckooHashMap<String, String>();
@@ -118,9 +117,6 @@ public class BuildIndex {
         permuted = Permutation.permute_array(sizeOfA);
         Set<Entry<String, LinkedList<String>>> dict = dictionary.entrySet();
         Iterator<Entry<String, LinkedList<String>>> it = dict.iterator();
-        ProgressBar bar = new ProgressBar();
-        int r = 0;
-        bar.update(r, dict.size());
         while (it.hasNext()) {
             Entry<String, LinkedList<String>> e = it.next();
             //generate first key for encrypting first node
@@ -154,8 +150,6 @@ public class BuildIndex {
                     counter++;
                 }
             }
-            r++;
-            bar.update(r, dict.size());
         }
         // Fill remaining A's entries with random stuff
         for (int i = counter + 1; i < sizeOfA; i++) {

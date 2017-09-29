@@ -45,9 +45,13 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
+import org.apache.log4j.Logger;
+
 import eu.clarussecure.dataoperations.DataOperationResult;
 
 public class Retrieve {
+
+    private static Logger logger = Logger.getLogger(Retrieve.class);
 
     // AKKA fix: review method signature to pass encrypted attribute names and new 'indexes' parameter to compute salts
     //    public static List<DataOperationResult> decrypt_result(List<DataOperationCommand> promise,
@@ -83,7 +87,7 @@ public class Retrieve {
                 //decrypted_attribute_names[i] = Encryptor.decrypt(encrypted_attribute_names[i], newSK);
                 decrypted_attribute_names[i] = Encryptor.decrypt(encrypted_attribute_names[i], newSK, true);
             } catch (Exception e) {
-                System.out.println("Decryption failure");
+                logger.info("Decryption failure");
                 e.printStackTrace();
             }
 
@@ -101,8 +105,6 @@ public class Retrieve {
         			// They can be find in the last column of encrypted_retrieved_results matrix
         			row_number[i] = Integer.parseInt(encrypted_retrieved_results[i][encrypted_retrieved_results[0].length - 1])-1;
         		}*/
-        ProgressBar bar = new ProgressBar();
-        bar.update(0, encrypted_retrieved_results.length);
         for (int i = 0; i < encrypted_retrieved_results.length; i++) {
             for (int j = 0; j < encrypted_retrieved_results[0].length - 1; j++) {
                 row_number = Integer.parseInt(encrypted_retrieved_results[i][encrypted_retrieved_results[0].length - 1])
@@ -115,10 +117,9 @@ public class Retrieve {
                             Integer.toString(row_number + indexes[j] + 1));
                     decrypted_content[i][j] = Encryptor.decrypt(encrypted_retrieved_results[i][j], newSK);
                 } catch (Exception e) {
-                    System.out.println("Decryption failure");
+                    logger.info("Decryption failure");
                 }
             }
-            bar.update(i, encrypted_retrieved_results.length);
         }
         SE_search_response.setContents(decrypted_content);
         SE_search_response.setAttributeNames(decrypted_attribute_names);

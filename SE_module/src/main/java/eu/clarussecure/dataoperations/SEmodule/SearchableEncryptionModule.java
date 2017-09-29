@@ -30,7 +30,7 @@
  * Contact: Monir AZRAOUI, Melek ÖNEN, Refik MOLVA
  * name.surname(at)eurecom(dot)fr
  *
-*******************************************************************************/
+ *******************************************************************************/
 package eu.clarussecure.dataoperations.SEmodule;
 
 import java.io.IOException;
@@ -129,7 +129,6 @@ public class SearchableEncryptionModule implements DataOperation {
                 Files.deleteIfExists(FileSystems.getDefault().getPath(ksName));
                 KeyManagementUtils.procedureKeyGen();
             } catch (IOException | NoSuchAlgorithmException | KeyStoreException | CertificateException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -257,9 +256,11 @@ public class SearchableEncryptionModule implements DataOperation {
         //
         //        }
         // First, filter attribute names and criteria to encrypt
+
         List<String> allFqAttributeNames = Arrays.stream(attributeNames).map(an -> attributePatterns.entrySet().stream()
                 .filter(e -> e.getValue().matcher(an).matches()).findFirst().map(Map.Entry::getKey).orElse(null))
                 .collect(Collectors.toList());
+
         List<Boolean> encryptedAttributeFlags = allFqAttributeNames.stream().map(fqan -> attributeTypes.get(fqan))
                 .map(type -> typesProtection.get(type)).map(typeProtection -> Stream.of("encryption", "searchable")
                         .anyMatch(protection -> protection.equals(typeProtection)))
@@ -267,6 +268,7 @@ public class SearchableEncryptionModule implements DataOperation {
         List<String> attributeNamesToProcess = IntStream.range(0, attributeNames.length)
                 .filter(i -> encryptedAttributeFlags.get(i)).mapToObj(i -> attributeNames[i])
                 .collect(Collectors.toList());
+
         List<Integer> encryptedAttributeIndexes = Arrays.stream(attributeNames)
                 .map(an -> attributeNamesToProcess.indexOf(an)).collect(Collectors.toList());
         // only the last part of the attribute name is encrypted
@@ -280,6 +282,7 @@ public class SearchableEncryptionModule implements DataOperation {
                 .map(an -> attributePatterns.entrySet().stream().filter(e -> e.getValue().matcher(an).matches())
                         .findFirst().map(Map.Entry::getKey).orElse(null))
                 .collect(Collectors.toList());
+
         List<Boolean> encryptedCriteriaFlags = IntStream
                 .range(0,
                         criteria.length)

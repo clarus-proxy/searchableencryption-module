@@ -30,7 +30,7 @@
  * Contact: Monir AZRAOUI, Melek ÖNEN, Refik MOLVA
  * name.surname(at)eurecom(dot)fr
  *
-*******************************************************************************/
+ *******************************************************************************/
 
 package demo.test;
 
@@ -38,19 +38,28 @@ import static eu.clarussecure.dataoperations.SEmodule.Constants.*;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
+import java.util.StringTokenizer;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
 
 import eu.clarussecure.dataoperations.Criteria;
 import eu.clarussecure.dataoperations.DataOperationCommand;
 import eu.clarussecure.dataoperations.DataOperationResult;
 import eu.clarussecure.dataoperations.SEmodule.Constants;
-import eu.clarussecure.dataoperations.SEmodule.ProgressBar;
 import eu.clarussecure.dataoperations.SEmodule.SearchableEncryptionCommand;
 import eu.clarussecure.dataoperations.SEmodule.SearchableEncryptionModule;
 import eu.clarussecure.dataoperations.SEmodule.SearchableEncryptionResponse;
@@ -58,6 +67,8 @@ import eu.clarussecure.dataoperations.SEmodule.SearchableEncryptionResponse;
 
 public class demo_main {
 	@SuppressWarnings("unchecked")
+	private static Logger logger = Logger.getLogger(demo_main.class);
+
 	public static void main(String[] args) throws Exception {
 
 		/**
@@ -66,35 +77,37 @@ public class demo_main {
 		 */
 
 		if (args.length < 1) {
-			System.out.print("You must provide csv file path...");
+			logger.info("You must provide csv file path...");
 			return;
 		}
 
 		String name = (args[0].substring(args[0].lastIndexOf("/")+1)).split(".csv")[0];
 		Constants.tableName = name;
 
-		Connection connection = DBmanager.establishConnection();
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		DocumentBuilder db = dbf.newDocumentBuilder();
+		Document document = db.parse(new File("/home/eurecom/Desktop/lab_simple.xml"));
+		logger.info("Loading security policy");
 
-		System.out.println("*************************\n"
-				+ "******** HELLO ! ********\n" 
-				+ "*************************");
+
+		Connection connection = DBmanager.establishConnection();
 
 		/**
 		 * Simulating the Protocol Module
 		 */
-		System.out.println("Parsing the dataset....");
+		logger.info("Parsing the dataset....");
 
 		String[] attributeNames;
 		String[][] content;
 
 		attributeNames = parse_attributes(args[0]);
-		System.out.println("Attribute names:\n" + Arrays.deepToString(attributeNames).replaceAll("],","]," + System.getProperty("line.separator")) + "\n");
+		logger.info("Attribute names:\n" + Arrays.deepToString(attributeNames).replaceAll("],","]," + System.getProperty("line.separator")) + "\n");
 
 		content = parse_csv(args[0]);
-		System.out.println(content.length + " rows in the database");
+		logger.info(content.length + " rows in the database");
 
 		// Declare instance of SE module
-		SearchableEncryptionModule SE_module = new SearchableEncryptionModule();
+		SearchableEncryptionModule SE_module = new SearchableEncryptionModule(document);
 
 		// Call "post" method of the SE module
 		List<DataOperationCommand> post_query;
@@ -105,104 +118,170 @@ public class demo_main {
 		 * Call to the SE module
 		 */
 		post_query = SE_module.post(attributeNames, content);
-		System.out.println("POST OK\n");
+		logger.info("POST OK\n");
 
 		/**
 		 * Simulating Protocol Module for storing the encrypted database to the server
 		 */
 		SearchableEncryptionCommand myPostQuery = (SearchableEncryptionCommand) post_query.get(0);
 		String[][] encrypted_content = myPostQuery.getProtectedContents();
-		System.out.println("Upload encrypted database to the server\n");
+		logger.info("Upload encrypted database to to the PostgreSQL server\n");
+
 		DBmanager.storeInPostgres(Constants.tableName+encryptedDB, post_query.get(0).getProtectedAttributeNames(), encrypted_content, connection);
 
-		System.out.println("Upload search index to the server\n");
-		System.out.println(encrypted_content.length + " rows in the database");
+		logger.info("Upload search index to the PostgreSQL server\n");
+		logger.info(encrypted_content.length + " rows in the database");
 		DBmanager.storeIndex(Constants.tableName+Constants.indexName, post_query.get(0).getExtraBinaryContent()[0], connection);
 
 
 
 
+		while(true){
 
-		// Call "get outbound" (client search with SE)
-		System.out.println("**********************\n"
-				+ "***** GET (out) ******\n" 
-				+ "**********************");
-		List<DataOperationCommand> search_query;
-		/**
-		 * Simulating Protocol module
-		 */
-		// Prompt user for keyword (SQL "WHERE" condition - simple)
-		//Scanner keyword_input = new Scanner(System.in);
-		//System.out.println("Please complete the statement:\n");
-		//System.out.println("SELECT * FROM "+Constants.tableName +" WHERE ");
-		//String read_keyword = keyword_input.nextLine();
-		String read_keyword = "pat_last2='GARCIA'";
-		System.out.println("Executing SQL query: SELECT * FROM " + Constants.tableName + " WHERE " +read_keyword);
-		// Create Criteria
-		String condition[] = read_keyword.split("=");
-		Criteria myCriteria = new Criteria(condition[0], "=", condition[1]);
-		Criteria[] criteria = { myCriteria };
+			// Call "get outbound" (client search with SE)
+			System.out.println("*********************\n"
+					+ "****** SEARCH *******\n" 
+					+ "*********************");
+			List<DataOperationCommand> search_query;
+			/**
+			 * Simulating Protocol module
+			 */
+			// Prompt user for keyword (SQL "WHERE" condition - simple)
+			//Scanner keyword_input = new Scanner(System.in);
+			//System.out.println("Please complete the statement:\n");
+			//System.out.println("SELECT * FROM "+Constants.tableName +" WHERE ");
+			//String where_statement = keyword_input.nextLine();
+			String where_statement = "lab_simple/lab_simple/pat_name=SANDRA OR lab_simple/lab_simple/pat_name=RAUL";
+			where_statement= "(" + where_statement + ");";
+			System.out.println("Executing SQL query: SELECT * FROM " + Constants.tableName + " WHERE " + where_statement + "\n");
 
-		/**
-		 * Call to the SE module
-		 */
-		search_query = SE_module.get(attributeNames, criteria);
-		System.out.println("GET (outbound) OK\n");
-
-
-		/**
-		 * Simulating Protocol Module for creating the obfuscated SQL query
-		 */
-		ArrayList<String> conditions = new ArrayList<String>();
-		for(int i=0; i<search_query.size();i++){
-			Criteria[] search_criteria = search_query.get(i).getCriteria();
-			String where_condition;
-			for(int j=0;j<search_criteria.length; j++){
-				where_condition = search_criteria[j].getAttributeName() + " " +
-						search_criteria[j].getOperator() + " " + search_criteria[j].getValue();
-				conditions.add(where_condition);
+			// Create Criteria
+			Criteria[] criteria = create_criteria(where_statement);
+			int kk = 0;
+			for (int i = 0; i < criteria.length; i++) {
+				if (criteria[i].getAttributeName() != null) {
+					kk++;
+				}
 			}
+			Criteria[] kw_only_criteria = new Criteria[kk];
+			int jj = 0;
+			for (int i = 0; i < criteria.length; i++) {
+				if (criteria[i].getAttributeName() != null) {
+					kw_only_criteria[jj] = criteria[i];
+					jj++;
+				}
+			}
+			//System.out.println(kw_only_criteria[0].getAttributeName() + " " +kw_only_criteria[0].getOperator() + " " + kw_only_criteria[0].getValue() );
+
+			/**
+			 * Call to the SE module
+			 */
+			search_query = SE_module.get(attributeNames, kw_only_criteria);
+
+
+			/**
+			 * Simulating Protocol Module for creating the obfuscated SQL query
+			 */
+			ArrayList<String> conditions = new ArrayList<String>();
+			for(int i=0; i<search_query.size();i++){
+				Criteria[] search_criteria = search_query.get(i).getCriteria();
+				String where_condition;
+				int k = 0;
+				for(int j=0;j<criteria.length; j++){
+					if(criteria[j].getAttributeName()==null){
+						where_condition = " " + criteria[j].getOperator() + " ";
+						conditions.add(where_condition);
+					}else{
+						where_condition = search_criteria[k].getAttributeName().split("/")[2] + " " +
+								search_criteria[k].getOperator() + " " + search_criteria[k].getValue();
+						conditions.add(where_condition);
+						k++;
+					}
+				}
+
+			}
+
+
+			System.out.println("Protected SQL query executed by the PostgresSQL server:");
+			String sql_search_query = "select * from "+name+encryptedDB+" where ";
+			System.out.println( sql_search_query+ "\n");
+			for(int i=0; i<conditions.size(); i++){
+				System.out.println(conditions.get(i) + "\n");
+				sql_search_query += conditions.get(i);
+			}
+
+			System.out.println(sql_search_query);
+			/**
+			 * TEST of cloud search with PL/JAVA in Postgres
+			 */
+			String[][] search_results = DBmanager.search_and_retrieve(sql_search_query, connection);
+			if(search_results.length>0){
+				System.out.println("Retrieved encrypted results from the PostgreSQL database:");
+
+				System.out.println();
+
+				System.out.println(search_results.length + " rows retrieved from the database\n\n");
+
+
+				List<String[][]> encrypted_results = new ArrayList<String[][]>();
+				encrypted_results.add(search_results);
+
+				// Call "get inbound" (decrypt with SE)
+				System.out.println("**********************\n"
+						+ "****** DECRYPT *******\n" 
+						+ "**********************");
+
+				/**
+				 * Simulating the Protocol Module for creating Data Operation Result
+				 */
+				List<DataOperationResult> se_response;
+
+				// Call "get"
+				se_response = SE_module.get(search_query, encrypted_results);
+				SearchableEncryptionResponse output_get;
+				String[][] decrypted_content = null;
+				for(int k = 0; k < se_response.size(); k++){
+					output_get = (SearchableEncryptionResponse) se_response.get(k);
+					decrypted_content = output_get.getContents();
+				}
+				System.out.println("Decrypted content:");
+
+				System.out.println(Arrays.deepToString(decrypted_content).replaceAll("],","]," + System.getProperty("line.separator")) + "\n");
+				System.out.println(search_results.length + " rows retrieved from the database\n\n");}
+			else{
+				System.out.println("KEYWORD NOT FOUND \n\n");
+			}
+
+
+
+			boolean again = true;
+			while(again){
+				again=false;
+				System.out.println("Do you want to submit another search query? (Y/N)");
+				Scanner sc = new Scanner(System.in);
+				String answer = sc.nextLine();
+
+
+				switch (answer.toUpperCase())
+				{
+				case "Y":
+					continue;
+
+				case "N":  
+					System.out.println("*************************\n"
+							+ "******** Bye ! ********\n" 
+							+ "*************************");
+					connection.close();
+					System.exit(0);  
+
+				default:
+					System.out.println("ERROR");
+					again=true;
+					break;             
+				}
+			}
+
 		}
-		String sql_search_query = "select * from "+name+encryptedDB+" where ";
-		for(int i=0; i<conditions.size(); i++){
-			sql_search_query += conditions.get(i);
-		}
-
-
-		/**
-		 * TEST of cloud search with PL/JAVA in Postgres
-		 */
-		System.out.println(sql_search_query);
-		String[][] search_results = DBmanager.search_and_retrieve(sql_search_query, connection);
-
-
-		List<String[][]> encrypted_results = new ArrayList<String[][]>();
-		encrypted_results.add(search_results);
-
-		// Call "get inbound" (decrypt with SE)
-		System.out.println("**********************\n"
-				+ "***** GET (in) *******\n" 
-				+ "**********************");
-
-		/**
-		 * Simulating the Protocol Module for creating Data Operation Result
-		 */
-		List<DataOperationResult> se_response;
-
-		// Call "get"
-		se_response = SE_module.get(search_query, encrypted_results);
-		System.out.println("GET INBOUND OK\n");
-
-
-		SearchableEncryptionResponse output_get;
-		String[][] decrypted_content = null;
-		for(int k = 0; k < se_response.size(); k++){
-			output_get = (SearchableEncryptionResponse) se_response.get(k);
-			decrypted_content = output_get.getContents();
-		}
-		System.out.println("Decrypted content:\n" + Arrays.deepToString(decrypted_content).replaceAll("],","]," + System.getProperty("line.separator")) + "\n");
-
-
 	}
 
 
@@ -224,9 +303,8 @@ public class demo_main {
 	}
 
 	private static String[][] parse_csv(String csv_path) throws IOException {
-		ProgressBar bar = new ProgressBar();
 		File csv_file = new File(csv_path);
-		BufferedReader in = new BufferedReader(new FileReader(csv_file));
+		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(csv_file), "ISO-8859-1"));
 		LinkedList<String> lines = new LinkedList<String>();
 		String line = "";
 		while ((line = in.readLine()) != null) {
@@ -236,12 +314,81 @@ public class demo_main {
 		line = lines.pollFirst();
 		int recordSize = line.split(",").length;
 		String[][] content = new String[lines.size()][recordSize];
-		bar.update(0, lines.size());
 		for (int i = 0; i < lines.size(); i++) {
 			content[i] = lines.get(i).split(",");
-			bar.update(i, lines.size());
 		}
 		return content;
 	}
+
+	/*	SQL interpretation methods
+	 */
+
+	private static String identifyOperator(String keyword){
+		String[] operators = new String[]{">=","<=","=",">","<","%"}; //Be careful, the order matter !!
+		String operator = null;
+		int i=0;
+		while(operator==null && i<operators.length){
+			if (keyword.contains(operators[i])) 
+				operator = operators[i];
+			++i;
+		}
+		return operator;
+	}
+
+	private static Criteria[] create_criteria(String query){
+		StringTokenizer tokens = new StringTokenizer(query,"(); ",true);
+		ArrayList<Criteria> criteriaList = new ArrayList<Criteria>();
+		String operator;
+		String condition[];
+		Criteria myCriteria;
+
+		for (;tokens.hasMoreTokens();) {
+			String token = tokens.nextToken();
+			System.out.println(token);
+
+			//Ignore space
+			if (token.charAt(0) == ' ')
+				;
+			else if (token.equals(";"))
+				;
+
+			else if ( token.equals("(") || token.equals(")") ){
+				//opening or closing brackets
+				myCriteria = new Criteria(null, token, null);
+				criteriaList.add(myCriteria);
+			}
+
+			// Logical Operator (or, and)
+			else if(token.toUpperCase().equals("OR") || token.toUpperCase().equals("AND")){  
+				myCriteria = new Criteria(null, token.toUpperCase(), null);
+				criteriaList.add(myCriteria);
+			}
+			// search criterion of the form attribute=value
+			else {
+				operator = identifyOperator(token);
+				if(operator==null){
+					System.out.println("ERROR: keyword without arithmetic operator!\nKeyword: "+token);
+					System.exit(1);
+					//}
+				}
+				condition = token.split(operator);
+
+				//in case the value contains spaces or quotes
+				String regExp = "'.*(\')*.*[^']";
+				String value = condition[1];
+				while(value.matches(regExp)||value.equals("'")){
+					token = tokens.nextToken();
+					value = value.concat(token);
+				}
+				value = value.replaceAll("\\\\'", "'");
+				myCriteria = new Criteria(condition[0], operator, value);
+				criteriaList.add(myCriteria);
+			}
+		}
+		return criteriaList.toArray(new Criteria[criteriaList.size()]);	  
+	}
+
+
+
 
 }

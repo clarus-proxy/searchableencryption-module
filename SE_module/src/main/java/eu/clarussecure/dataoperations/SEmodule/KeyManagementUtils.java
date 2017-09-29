@@ -54,8 +54,10 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.log4j.Logger;
 
 public class KeyManagementUtils {
+    private static Logger logger = Logger.getLogger(KeyManagementUtils.class);
 
     public static SecretKey[] procedureKeyGen()
             throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
@@ -78,7 +80,7 @@ public class KeyManagementUtils {
         String keyLength = "128";
 
         encryption_Key = generateKey(keyType, keyLength);
-        System.out.println("	Generated Encryption Key: " + convertAESKeyToString(encryption_Key));
+        logger.info("\nGenerated Encryption Key: [" + convertAESKeyToString(encryption_Key) + "]");
         output[0] = encryption_Key;
 
         /*
@@ -88,9 +90,9 @@ public class KeyManagementUtils {
         permKey = generateKey(keyType, keyLength);
         output[1] = prfKey;
         output[2] = permKey;
-        System.out.println("	Generated Pseudo Random Function (PRF) key: " + convertAESKeyToString(prfKey));
+        logger.info("Generated Pseudo Random Function (PRF) key: [" + convertAESKeyToString(prfKey) + "]");
 
-        System.out.println("	Generated cuckoo hash table  initial (Pi) key: " + convertAESKeyToString(permKey));
+        logger.info("Generated cuckoo hash table  initial (Pi) key: [" + convertAESKeyToString(permKey) + "]\n");
 
         /*
          * Save keys in a Java keystore
@@ -105,6 +107,7 @@ public class KeyManagementUtils {
         storeSecretKey(myKS, prfKey, "y_Key", ksPassword);
         storeSecretKey(myKS, permKey, "z_Key", ksPassword);
         storeKeyStore(ksName, myKS, ksPassword);
+        logger.info("\n");
         return output;
     }
 
@@ -157,7 +160,7 @@ public class KeyManagementUtils {
         ks.load(null, password);
         FileOutputStream fos = new FileOutputStream(ksName);
         ks.store(fos, password);
-        System.out.println("New keystore created");
+        logger.info("New keystore created");
         fos.close();
     }
 
@@ -165,7 +168,7 @@ public class KeyManagementUtils {
             throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         FileOutputStream fos = new FileOutputStream(ksName);
         ks.store(fos, password);
-        System.out.println("Keystore saved!");
+        logger.info("Keystore saved!");
         fos.close();
     }
 
@@ -176,10 +179,10 @@ public class KeyManagementUtils {
         try {
             ks.load(is, password);
         } catch (IOException e) {
-            System.out.println("Wrong Password...");
+            logger.info("Wrong Password...");
             System.exit(1);
         }
-        System.out.println("Keystore loaded!");
+        logger.info("Keystore loaded!");
         return ks;
     }
 
@@ -190,7 +193,7 @@ public class KeyManagementUtils {
         ProtectionParameter protParam = new PasswordProtection(password);
         ks.setEntry(alias, skEntry, protParam);
         String keyName = getKeyName(alias);
-        System.out.println(keyName + " inserted in the keystore");
+        logger.info(keyName + " inserted in the keystore");
 
     }
 
@@ -201,14 +204,14 @@ public class KeyManagementUtils {
         SecretKeyEntry skEntry = (SecretKeyEntry) ks.getEntry(alias, protParam);
         key = skEntry.getSecretKey();
         String keyName = getKeyName(alias);
-        System.out.println(keyName + " loaded from the keystore");
+        logger.info(keyName + " loaded from the keystore");
         return key;
     }
 
     public static char[] askPassword(String myObject) {
         if (Constants.passwd == null) {
             Scanner pwd_input = new Scanner(System.in);
-            System.out.println("Please enter a password for " + myObject + ": ");
+            logger.info("Please enter a password for " + myObject + ": ");
             String read_pwd = pwd_input.nextLine();
             char[] password = read_pwd.toCharArray();
             Constants.passwd = password;
