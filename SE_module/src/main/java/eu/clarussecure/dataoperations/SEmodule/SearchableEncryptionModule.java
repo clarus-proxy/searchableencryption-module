@@ -55,6 +55,7 @@ import java.util.stream.Stream;
 
 import javax.crypto.SecretKey;
 
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -67,6 +68,7 @@ import eu.clarussecure.dataoperations.DataOperationCommand;
 import eu.clarussecure.dataoperations.DataOperationResult;
 
 public class SearchableEncryptionModule implements DataOperation {
+    private static Logger logger = Logger.getLogger(SearchableEncryptionModule.class);
 
     // AKKA fix: any protection module must load the security policy
     // Data extracted from the security policy
@@ -188,8 +190,8 @@ public class SearchableEncryptionModule implements DataOperation {
             try {
                 SEcommand = Store.store_with_SE(attributeNamesToEncrypt, contentToEncrypt, indexes);
             } catch (Exception e) {
-                System.out.println("[FAILURE]: Searchable Encryption post");
-                System.out.println(e);
+                logger.info("[FAILURE]: Searchable Encryption post");
+                logger.info(e);
                 System.exit(1);
             }
         } else {
@@ -469,7 +471,7 @@ public class SearchableEncryptionModule implements DataOperation {
                 new ArrayList<>(this.attributeTypes.keySet()));
         List<Map<String, String>> output = new ArrayList<>();
         Map<String, String> se_mapping = new HashMap<>();
-        System.out.println("Loading search keys");
+        logger.info("Loading search keys");
         String ksName = "clarus_keystore";
         char[] ksPassword = KeyManagementUtils.askPassword(ksName);
         KeyStore myKS;
@@ -518,7 +520,7 @@ public class SearchableEncryptionModule implements DataOperation {
                 se_mapping.put(fqAttributeName, encryptedAttributeName);
             }
         } catch (Exception e) {
-            System.out.println("[FAILURE]");
+            logger.info("[FAILURE]");
             e.printStackTrace();
         }
         output.add(se_mapping);
