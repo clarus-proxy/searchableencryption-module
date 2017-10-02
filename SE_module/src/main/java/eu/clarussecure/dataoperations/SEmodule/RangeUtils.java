@@ -107,18 +107,18 @@ public class RangeUtils {
 
         case "add":
             askUserForRange();
-            System.out.println("\033[0;32m[!] The range config. has been added successfully!\u001B[0m");
+            System.out.println("[!] The range config. has been added successfully!");
             askUserForRangesConfiguration();
             break;
 
         case "delete":
             askUserForRangeDelete();
-            System.out.println("\033[0;32m[!] The range config. has been deleted successfully!\u001B[0m");
+            System.out.println("[!] The range config. has been deleted successfully!");
             askUserForRangesConfiguration();
             break;
 
         case "save":
-            System.out.println("\033[0;32m[!] The range config. has been saved successfully!\u001B[0m");
+            System.out.println("[!] The range config. has been saved successfully!");
             break;
 
         default:
@@ -130,7 +130,7 @@ public class RangeUtils {
         if (Store.ranges.keySet().isEmpty())
             System.out.println("No ranges configuration to display");
         else {
-            System.out.println("\033[0;32mRanges configuration added:\u001B[0m");
+            System.out.println("Ranges configuration added:");
 
             //Display ranges configuration
             String[] header = { "attribute name", "initial value", "range length" };
@@ -173,7 +173,7 @@ public class RangeUtils {
         if (rangeConfig != null) {
             Store.ranges.put(rangeConfig.split(",")[0], rangeConfig.split(",")[1]);
         } else {
-            System.out.println("\033[1;31m[!] Invalid range configuration\n\u001B[0m");
+            System.out.println("[!] Invalid range configuration\n");
             askUserForRange();
         }
     }
@@ -198,8 +198,8 @@ public class RangeUtils {
                     return null;
                 if (Integer.valueOf(rangeConfig[1]) > Integer
                         .valueOf(Store.num_Attr.get(rangeConfig[0]).split(":")[0])) {
-                    System.out.println("\033[1;31mERROR: Initial value must be lower or equal to the minimum value ["
-                            + Store.num_Attr.get(rangeConfig[0]).split(":")[0] + "]\u001B[0m");
+                    System.out.println("ERROR: Initial value must be lower or equal to the minimum value ["
+                            + Store.num_Attr.get(rangeConfig[0]).split(":")[0] + "]");
                     return null;
                 }
                 String validRangeConfig = rangeConfig[0] + "," + rangeConfig[1] + ":" + rangeConfig[2];
@@ -219,7 +219,7 @@ public class RangeUtils {
         if (Store.ranges.keySet().contains(answer)) {
             Store.ranges.remove(answer);
         } else {
-            System.out.println("\033[1;31m[!] Invalid attribute name!\n\u001B[0m");
+            System.out.println("[!] Invalid attribute name!\n");
             askUserForRangeDelete();
         }
     }
