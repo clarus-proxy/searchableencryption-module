@@ -145,7 +145,7 @@ The 4 following parameters can change in the path according to your system:
 - PL/Java (Configure) 
 -- Launch postgresql:
 
-> sudo -u postgres psql] 
+> sudo -u postgres psql
 
 The command line will start with "**postgres=#**"
 
