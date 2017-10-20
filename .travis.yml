@@ -1,8 +1,8 @@
 language: java
- jdk:
-     - openjdk8
-     - oraclejdk8
+jdk:
+    - openjdk8
+    - oraclejdk8
 env:
-     - SRC_DIR=SE_module
+    - SRC_DIR=SE_module
 install: true
 script: cd $SRC_DIR && mvn install
