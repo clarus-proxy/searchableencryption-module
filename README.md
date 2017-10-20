@@ -1,4 +1,5 @@
 # Searchable Encryption (SE) module
+[![Build Status](https://travis-ci.org/clarus-proxy/searchableencryption-module.svg?branch=master)](https://travis-ci.org/clarus-proxy/searchableencryption-module)
 
 
 Instructions to install and test the module.

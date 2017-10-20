@@ -1,6 +1,5 @@
 package eu.clarussecure.dataoperations.SEmodule;
 
-
 /***************************************************************************
  * File: UniversalHashFunction.java
  * Author: Keith Schwarz (htiek@cs.stanford.edu)
