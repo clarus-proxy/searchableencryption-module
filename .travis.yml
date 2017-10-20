@@ -5,4 +5,6 @@ jdk:
 env:
     - SRC_DIR=SE_module
 install: true
-script: cd $SRC_DIR && mvn install
+script: 
+    - git clone https://github.com/clarus-proxy/dataoperations-api.git && cd dataoperations-api && mvn install && cd ..
+    - cd $SRC_DIR && mvn install
