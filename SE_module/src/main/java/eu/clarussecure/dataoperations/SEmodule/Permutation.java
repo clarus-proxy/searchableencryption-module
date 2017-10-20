@@ -38,37 +38,31 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Permutation {
 
-	
-	private static BigInteger a;
-	private static BigInteger b;
+    private static BigInteger a;
+    private static BigInteger b;
 
-	
-	public static int[] permute_array(int n){
-		do{
-			a = new BigInteger(""+ThreadLocalRandom.current().nextInt(1, n));
-		}
-		while(!coprime(a, BigInteger.valueOf(n)));
-		
-		b = new BigInteger(""+ThreadLocalRandom.current().nextInt(1, n));
-		int[] perm = new int[n];
-		for(int i=0; i<n; i++){
-			perm[i] = (int)((a.longValue() * i + b.longValue())%n);
-		}
-		return perm;
-	}
-	
-	
-	private static boolean coprime(BigInteger a, BigInteger b) {
-		// test if two integers are coprime
-		return gcd(a,b)==1;
-	}
+    public static int[] permute_array(int n) {
+        do {
+            a = new BigInteger("" + ThreadLocalRandom.current().nextInt(1, n));
+        } while (!coprime(a, BigInteger.valueOf(n)));
 
+        b = new BigInteger("" + ThreadLocalRandom.current().nextInt(1, n));
+        int[] perm = new int[n];
+        for (int i = 0; i < n; i++) {
+            perm[i] = (int) ((a.longValue() * i + b.longValue()) % n);
+        }
+        return perm;
+    }
 
-	private static int gcd(BigInteger a, BigInteger b) {
-		// compute the gcd of a and b
-		BigInteger d = a.gcd(b);
-		return d.intValue();
-	}
-	
-	
+    private static boolean coprime(BigInteger a, BigInteger b) {
+        // test if two integers are coprime
+        return gcd(a, b) == 1;
+    }
+
+    private static int gcd(BigInteger a, BigInteger b) {
+        // compute the gcd of a and b
+        BigInteger d = a.gcd(b);
+        return d.intValue();
+    }
+
 }

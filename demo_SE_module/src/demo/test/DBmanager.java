@@ -49,7 +49,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.log4j.Logger;
+
 public class DBmanager {
+    private static Logger logger = Logger.getLogger(DBmanager.class);
 
 	public static Connection establishConnection() throws SQLException{
 		try {
@@ -58,7 +61,7 @@ public class DBmanager {
 
 		} catch (ClassNotFoundException e) {
 
-			System.out.println("Where is your PostgreSQL JDBC Driver? "
+			logger.info("Where is your PostgreSQL JDBC Driver? "
 					+ "Include in your library path!");
 			e.printStackTrace();
 			return null;
@@ -71,7 +74,7 @@ public class DBmanager {
 					"jdbc:postgresql://"+remoteServer+":"+port+"/postgres", "user",
 					"123");
 		} catch (SQLException e) {
-			System.out.println("Connection Failed! Check the address of the remote server and the port for postgresql");
+			logger.info("Connection Failed! Check the address of the remote server and the port for postgresql");
 			return null;
 		}
 		return connection;
@@ -86,28 +89,27 @@ public class DBmanager {
 			//statement.close();
 			//connection.close();
 		} else {
-			System.out.println("Failed to make connection!");
+			logger.info("Failed to make connection!");
 
 		}
 	}
 
 	private static void createTable(String tableName, String[] attributesNames, Statement statement){
-
 		try {
 			statement.executeUpdate("DROP TABLE IF EXISTS " + tableName+";");
 		} catch (SQLException e1) {
-			System.out.println("Failed to delete existing table!");
+			logger.info("Failed to delete existing table!");
 		}
 		int nbAtt = attributesNames.length;
 		String query = "CREATE TABLE " + tableName + "( ";
 		for(int i=0; i<nbAtt-1; ++i){
-			query += "U&\""+attributesNames[i]+ "\" TEXT, ";
+			query += "U&\""+attributesNames[i].split("/")[2]+ "\" TEXT, ";
 		}
-		query += attributesNames[nbAtt-1] + " TEXT);";
+		query += attributesNames[nbAtt-1].split("/")[2] + " TEXT);";
 		try {
 			statement.executeUpdate(query);
 		} catch (SQLException e) {
-			System.out.println("Failed to create table!");
+			logger.info("Failed to create table!");
 			e.printStackTrace();
 		}
 	}
@@ -133,7 +135,7 @@ public class DBmanager {
 			statement.executeUpdate(sql);
 
 		} catch (SQLException e) {
-			System.out.println("Failed to insert rows ");
+			logger.info("Failed to insert rows ");
 		}
 	}
 	
@@ -144,7 +146,7 @@ public class DBmanager {
 			statement = connection.createStatement();
 		}
 		else{
-			System.out.println("Failed to establish connection§"); 
+			logger.info("Failed to establish connection§"); 
 			System.exit(1);
 		}
 		statement.executeUpdate("DROP TABLE IF EXISTS "+tableName);
@@ -170,7 +172,7 @@ public class DBmanager {
 			statement = connection.createStatement();
 		}
 		else{
-			System.out.println("Failed to establish connection§"); 
+			logger.info("Failed to establish connection§"); 
 			System.exit(1);
 		}
 

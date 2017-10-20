@@ -33,17 +33,38 @@
 *******************************************************************************/
 package eu.clarussecure.dataoperations.SEmodule;
 
-public final class Constants {
-	public static String SEPARATOR = "\\|\\|";
-	public static String transformation = "AES/CTR/PKCS5Padding";
-	public static String charset = "ISO-8859-1";
-	public static String prf = "HmacSHA256";
-	public static String encryptedDB = "_encrypted";
-	public static String indexName = "_index";
-	public static String remoteServer = "127.0.0.1";
-	public static String port = "5432";
-	public static String configPath = "./config.obj";
-	//public static char[] passwd = null;
-	public static char[] passwd = {'c', 'l', 'a', 'r', 'u', 's'};
-	public static String tableName = null;
+import eu.clarussecure.dataoperations.DataOperationResponse;
+
+public class SearchableEncryptionResponse extends DataOperationResponse {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 8805277876762556655L;
+    // AKKA fix: fields already declared in mother class
+    //    /**
+    //    * Reconstructed data.
+    //    */
+    //    private String[][] contents;
+    //    private String[] attributeNames;
+    //
+    //    @Override
+    //    public String[][] getContents() {
+    //        return contents;
+    //    }
+
+    public void setContents(String[][] contents) {
+        this.contents = contents;
+    }
+
+    // AKKA fix: methods already declared in mother class
+    //    @Override
+    //    public String[] getAttributeNames() {
+    //        return attributeNames;
+    //    }
+    //
+    //    public void setAttributeNames(String[] attributeNames) {
+    //        this.attributeNames = attributeNames;
+    //    }
+    //
 }
