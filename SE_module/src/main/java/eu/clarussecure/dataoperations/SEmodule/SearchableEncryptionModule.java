@@ -285,11 +285,11 @@ public class SearchableEncryptionModule implements DataOperation {
                         .findFirst().map(Map.Entry::getKey).orElse(null))
                 .collect(Collectors.toList());
 
-        List<Boolean> encryptedCriteriaFlags = IntStream
-                .range(0,
-                        criteria.length)
+        List<Boolean> encryptedCriteriaFlags = IntStream.range(0, criteria.length)
                 .mapToObj(
-                        i -> criteria[i].getOperator().equals("=")
+                        i -> (criteria[i].getOperator().equals("=") || criteria[i].getOperator().equals(">")
+                                || criteria[i].getOperator().equals(">=") || criteria[i].getOperator().equals("<")
+                                || criteria[i].getOperator().equals("<="))
                                 && Stream.of("encryption", "searchable")
                                         .anyMatch(protection -> protection.equals(typesProtection
                                                 .get(attributeTypes.get(allFqCriteriaAttributeNames.get(i))))))
@@ -362,10 +362,57 @@ public class SearchableEncryptionModule implements DataOperation {
                 protectedCriteria[i] = criteria[i];
             }
         }
+        /*ArrayList<Criteria> protectedCriteria = new ArrayList<Criteria>();
+        int kk = 0;
+        System.out.println("encryptedCriteriaFlags.size()=" + encryptedCriteriaFlags.size());
+        
+        for (int i = 0; i < encryptedCriteriaFlags.size(); i++) {
+        System.out.println("i=" + i + "and k=" + kk);
+        if (encryptedCriteriaFlags.get(i)) {
+        parts = criteria[i].getAttributeName().split("/");
+        System.out.println("obfuscated criteria number =" + encryptedCriteriaIndexes.get(i).intValue() + kk);
+        Criteria newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i).intValue() + kk];
+        System.out.println(newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
+        if (newCriteria.getOperator() == "(") {
+            System.out.println("RANGE QUERY CRITERIA");
+            protectedCriteria.add(kk, newCriteria);
+            kk++;
+            System.out.println("i=" + i + "and k=" + kk);
+            newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i).intValue() + kk];
+            System.out.println(
+                    newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
+            while (newCriteria.getOperator() != ")") {
+                if (newCriteria.getOperator().toUpperCase() != "OR"
+                        && newCriteria.getOperator().toUpperCase() != "AND") {
+                    parts[parts.length - 1] = newCriteria.getAttributeName();
+                    newCriteria.setAttributeName(mergeAttributeName(parts));
+                }
+                protectedCriteria.add(kk, newCriteria);
+                kk++;
+                System.out.println("i=" + i + "and k=" + kk);
+                newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i).intValue() + kk];
+                System.out.println(
+                        newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
+        
+            }
+            i++;
+        } else {
+            parts[parts.length - 1] = newCriteria.getAttributeName();
+            newCriteria.setAttributeName(mergeAttributeName(parts));
+            protectedCriteria.add(kk, newCriteria);
+            kk++;
+            System.out.println("i=" + i + "and k=" + kk);
+        
+        }
+        } else {
+        protectedCriteria.add(kk, criteria[i]);
+        }
+        }*/
         searchQuery.setAttributeNames(clearAttributeNames);
         searchQuery.setProtectedAttributeNames(protectedAttributeNames);
         searchQuery.setMapping(mapping);
         searchQuery.setCriteria(protectedCriteria);
+        //searchQuery.setCriteria(protectedCriteria.toArray(new Criteria[protectedCriteria.size()]));
         return SEquery;
     }
 

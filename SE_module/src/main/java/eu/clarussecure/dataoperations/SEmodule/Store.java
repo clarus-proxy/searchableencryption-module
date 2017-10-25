@@ -35,6 +35,9 @@ package eu.clarussecure.dataoperations.SEmodule;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -64,6 +67,9 @@ public class Store {
 
     private static Logger logger = Logger.getLogger(Store.class);
 
+    public static Map<String, String> num_Attr = new HashMap<String, String>();
+    public static Map<String, String> ranges = new HashMap<String, String>();
+
     // AKKA fix: new 'indexes' parameter to compute salts
     //public static final List<DataOperationCommand> store_with_SE(String[] attributeNames, String[][] data_contents)
     //    throws Exception {
@@ -92,8 +98,38 @@ public class Store {
         }
         attributes = attributeNames;
 
-        logger.info("\nStep 04: Generate secure index");
-        index = BuildIndex.buildIndex(attributes, contents, prfKey, permKey);
+        System.out.println("\nStep 03: Range configuration");
+        int num_attr = RangeUtils.checkContent(attributes, contents);
+        if (num_attr > 0) {
+            System.out.println(num_attr + " numerical attributes found!");
+            RangeUtils.askUserForRangeFeature();
+        } else {
+            System.out.println("Your database does not contain numerical values. No range configuration.");
+        }
+
+        if (!Store.ranges.isEmpty()) {
+            System.out.println("\nStoring range configuration in a file");
+            Map[] config = new Map[2];
+            config[0] = Store.num_Attr;
+            config[1] = Store.ranges;
+            storeConfig(config);
+            System.out.println("[OK] File created");
+            System.out.println("\n\nStep 04: Update the database with the range configuration");
+            String[][] updatedDB = RangeUtils.updateDB(attributes, contents);
+            String[] attributes_with_range = new String[updatedDB[0].length];
+            attributes_with_range = updatedDB[0].clone();
+            String[][] contents_with_range = new String[updatedDB.length - 1][updatedDB[0].length];
+            for (int i = 0; i < updatedDB.length - 1; i++) {
+                contents_with_range[i] = updatedDB[i + 1].clone();
+            }
+
+            System.out.println("\nStep 05: Generate secure index");
+            index = BuildIndex.buildIndex(attributes_with_range, contents_with_range, prfKey, permKey);
+
+        } else {
+            System.out.println("\nStep 04: Generate secure index");
+            index = BuildIndex.buildIndex(attributes, contents, prfKey, permKey);
+        }
 
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
         ObjectOutputStream byte_index = new ObjectOutputStream(byteOut);
@@ -106,7 +142,11 @@ public class Store {
         encrypted_attributes = new String[attributes.length + 1];
         encrypted_content = new String[contents.length][contents[0].length + 1];
 
-        logger.info("\n\nStep 05: Encrypt attributes and data");
+        if (!Store.ranges.isEmpty()) {
+            System.out.println("\n\nStep 06: Encrypt attributes and data0m");
+        } else {
+            System.out.println("\n\nStep 05: Encrypt attributes and data");
+        }
 
         // Encrypt attributes
         SecretKey newSK;
@@ -156,6 +196,12 @@ public class Store {
 
     public static ArrayList<Object> getIndex() {
         return index;
+    }
+
+    public static void storeConfig(Map[] config) throws FileNotFoundException, IOException {
+        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(Constants.tableName + ".config"));
+        out.writeObject(config);
+        out.close();
     }
 
 }
