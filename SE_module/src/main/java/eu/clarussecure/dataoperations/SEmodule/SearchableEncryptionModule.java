@@ -487,7 +487,10 @@ public class SearchableEncryptionModule implements DataOperation {
         SearchableEncryptionResponse searchResponse = SearchableEncryptionResponse.class.cast(SEresult.get(0));
         String[] clearAttributeNames = new String[encryptedAttributeFlags.size() - 1];
         String[][] clearContents = new String[encryptedContents.length][encryptedAttributeFlags.size() - 1];
-        for (int i = 0; i < clearAttributeNames.length; i++) {
+        // Montimage Fix: iterate up to length - 1 since RowID (from the index
+        // table) is present in the clearAttributeNames BUT IT IS NOT in the
+        // retrieved contents!!!
+        for (int i = 0; i < clearAttributeNames.length - 1; i++) {
             if (encryptedAttributeFlags.get(i)) {
                 String[] parts = encryptedAttributeNames[i].split("/");
                 parts[parts.length - 1] = searchResponse.getAttributeNames()[encryptedAttributeIndexes.get(i)];

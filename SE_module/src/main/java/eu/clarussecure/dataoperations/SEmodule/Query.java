@@ -93,8 +93,13 @@ public class Query {
                         System.out.println("Trapdoor for keyword" + keyword);
                         trap = ListTrapdoorForRange.get(keyword);
                         System.out.println("[" + trap[0] + ", " + trap[1] + "\n");
-                        String query = "(select * from search_with_SE((select index from " + Constants.tableName
-                                + Constants.indexName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
+
+                        // Montimage fix: Use Constants.indexName instead "index" as 
+                        // the index table column name
+                        // Montimage fix: Use only Constants.tableName as the index
+                        // table name
+                        String query = "(select * from search_with_SE((select " + Constants.indexName + " from "
+                                + Constants.tableName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
                         Criteria trapdoor = new Criteria("rowID", "IN", query);
                         myCriteria.add(trapdoor);
                         if (it.hasNext()) {
@@ -119,8 +124,12 @@ public class Query {
                     System.out.println("Trapdoor for keyword " + keyword);
                     System.out.println("[" + trap[0] + ", " + trap[1] + "]\n");
 
-                    String query = "(select * from search_with_SE((select index from " + Constants.tableName
-                            + Constants.indexName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
+                    // Montimage fix: Use Constants.indexName instead "index" as 
+                    // the index table column name
+                    // Montimage fix: Use only Constants.tableName as the index
+                    // table name
+                    String query = "(select * from search_with_SE((select " + Constants.indexName + " from "
+                            + Constants.tableName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
 
                     Criteria trapdoor = new Criteria("rowID", "IN", query);
                     myCriteria.add(trapdoor);
