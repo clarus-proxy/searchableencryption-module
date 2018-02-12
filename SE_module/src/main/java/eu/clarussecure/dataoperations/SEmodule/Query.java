@@ -62,8 +62,8 @@ public class Query {
             } catch (IOException e) {
                 logger.info("[FAILURE:] Trapdoor generation for keyword " + keyword);
             }
-            String query = "(select * from search_with_SE((select " + "index" + " from " + Constants.tableName
-                    + Constants.indexName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
+            String query = "(select * from search_with_SE((select " + Constants.indexName + " from "
+                    + Constants.tableName + "),ARRAY['" + trap[0] + "', '" + trap[1] + "']))";
             Criteria trapdoor = new Criteria("rowID", "IN", query);
             myCriteria.add(trapdoor);
         }
