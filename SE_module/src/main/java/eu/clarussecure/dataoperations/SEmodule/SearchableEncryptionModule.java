@@ -314,6 +314,7 @@ public class SearchableEncryptionModule implements DataOperation {
             try {
                 SEquery = Query.search_with_SE(attributeNamesToEncrypt, criteriaToEncrypt, indexes);
             } catch (Exception e) {
+                e.printStackTrace();
                 System.exit(1);
             }
         } else {
@@ -350,7 +351,10 @@ public class SearchableEncryptionModule implements DataOperation {
             mapping.put(clearAttributeNames[clearAttributeNames.length - 1],
                     protectedAttributeNames[protectedAttributeNames.length - 1]);
         }
-        Criteria[] protectedCriteria = new Criteria[encryptedCriteriaFlags.size()];
+        // Montimage fix: In case of range queries, the encrypted criteria are
+        // the ones returned by Query.search_with_SE.
+        // TODO
+        /*Criteria[] protectedCriteria = new Criteria[encryptedCriteriaFlags.size()];
         for (int i = 0; i < protectedCriteria.length; i++) {
             if (encryptedCriteriaFlags.get(i)) {
                 parts = criteria[i].getAttributeName().split("/");
@@ -361,58 +365,58 @@ public class SearchableEncryptionModule implements DataOperation {
             } else {
                 protectedCriteria[i] = criteria[i];
             }
-        }
-        /*ArrayList<Criteria> protectedCriteria = new ArrayList<Criteria>();
-        int kk = 0;
+        }*/
+        ArrayList<Criteria> protectedCriteria = new ArrayList<Criteria>();
+        int kk = 0, n = 0;
         System.out.println("encryptedCriteriaFlags.size()=" + encryptedCriteriaFlags.size());
-        
+
         for (int i = 0; i < encryptedCriteriaFlags.size(); i++) {
-        System.out.println("i=" + i + "and k=" + kk);
-        if (encryptedCriteriaFlags.get(i)) {
-        parts = criteria[i].getAttributeName().split("/");
-        System.out.println("obfuscated criteria number =" + encryptedCriteriaIndexes.get(i).intValue() + kk);
-        Criteria newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i).intValue() + kk];
-        System.out.println(newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
-        if (newCriteria.getOperator() == "(") {
-            System.out.println("RANGE QUERY CRITERIA");
-            protectedCriteria.add(kk, newCriteria);
-            kk++;
             System.out.println("i=" + i + "and k=" + kk);
-            newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i).intValue() + kk];
-            System.out.println(
-                    newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
-            while (newCriteria.getOperator() != ")") {
-                if (newCriteria.getOperator().toUpperCase() != "OR"
-                        && newCriteria.getOperator().toUpperCase() != "AND") {
+            if (encryptedCriteriaFlags.get(i)) {
+                parts = criteria[i].getAttributeName().split("/");
+                System.out.println("obfuscated criteria number =" + (encryptedCriteriaIndexes.get(i) + n));
+                Criteria newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i + n)];
+                System.out.println(newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
+                if ("(".equals(newCriteria.getOperator())) {
+                    System.out.println("RANGE QUERY CRITERIA");
+                    protectedCriteria.add(kk, newCriteria);
+                    kk++;
+                    System.out.println("i=" + i + "and k=" + kk);
+                    newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i) + kk];
+                    System.out.println(
+                            newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
+                    while (!")".equals(newCriteria.getOperator())) {
+                        if (!"OR".equals(newCriteria.getOperator().toUpperCase())
+                                && !"AND".equals(newCriteria.getOperator().toUpperCase())) {
+                            parts[parts.length - 1] = newCriteria.getAttributeName();
+                            newCriteria.setAttributeName(mergeAttributeName(parts));
+                        }
+                        protectedCriteria.add(kk, newCriteria);
+                        kk++;
+                        n++;
+                        System.out.println("i=" + i + "and k=" + kk);
+                        newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i) + n];
+                        System.out.println(
+                                newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
+                    }
+                    i++;
+                } else {
                     parts[parts.length - 1] = newCriteria.getAttributeName();
                     newCriteria.setAttributeName(mergeAttributeName(parts));
+                    protectedCriteria.add(kk, newCriteria);
+                    kk++;
+                    System.out.println("i=" + i + "and k=" + kk);
+
                 }
-                protectedCriteria.add(kk, newCriteria);
-                kk++;
-                System.out.println("i=" + i + "and k=" + kk);
-                newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i).intValue() + kk];
-                System.out.println(
-                        newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
-        
+            } else {
+                protectedCriteria.add(kk, criteria[i]);
             }
-            i++;
-        } else {
-            parts[parts.length - 1] = newCriteria.getAttributeName();
-            newCriteria.setAttributeName(mergeAttributeName(parts));
-            protectedCriteria.add(kk, newCriteria);
-            kk++;
-            System.out.println("i=" + i + "and k=" + kk);
-        
         }
-        } else {
-        protectedCriteria.add(kk, criteria[i]);
-        }
-        }*/
         searchQuery.setAttributeNames(clearAttributeNames);
         searchQuery.setProtectedAttributeNames(protectedAttributeNames);
         searchQuery.setMapping(mapping);
-        searchQuery.setCriteria(protectedCriteria);
-        //searchQuery.setCriteria(protectedCriteria.toArray(new Criteria[protectedCriteria.size()]));
+        //searchQuery.setCriteria(protectedCriteria);
+        searchQuery.setCriteria(protectedCriteria.toArray(new Criteria[protectedCriteria.size()]));
         return SEquery;
     }
 
@@ -487,10 +491,7 @@ public class SearchableEncryptionModule implements DataOperation {
         SearchableEncryptionResponse searchResponse = SearchableEncryptionResponse.class.cast(SEresult.get(0));
         String[] clearAttributeNames = new String[encryptedAttributeFlags.size() - 1];
         String[][] clearContents = new String[encryptedContents.length][encryptedAttributeFlags.size() - 1];
-        // Montimage Fix: iterate up to length - 1 since RowID (from the index
-        // table) is present in the clearAttributeNames BUT IT IS NOT in the
-        // retrieved contents!!!
-        for (int i = 0; i < clearAttributeNames.length - 1; i++) {
+        for (int i = 0; i < clearAttributeNames.length; i++) {
             if (encryptedAttributeFlags.get(i)) {
                 String[] parts = encryptedAttributeNames[i].split("/");
                 parts[parts.length - 1] = searchResponse.getAttributeNames()[encryptedAttributeIndexes.get(i)];

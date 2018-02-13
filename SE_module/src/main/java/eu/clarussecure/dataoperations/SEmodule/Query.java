@@ -61,27 +61,35 @@ public class Query {
                     Map<String, String[]> ListTrapdoorForRange = new HashMap<String, String[]>();
                     myCriteria.add(new Criteria("", "(", ""));
 
-                    //type attribute >= value_min AND attribute <= value_max
-                    if (criteria[i].getAttributeName().equals(criteria[i + 1].getAttributeName())) {
-                        if ((criteria[i].getOperator() == ">=" || criteria[i].getOperator() == ">")
-                                && (criteria[i + 1].getOperator() == "<" || criteria[i + 1].getOperator() == "<=")) {
+                    // Montimage fix: This line generates an ArrayIndexOutOfBounds
+                    // when the criteria is single (attrib<max || attrib>min)
+                    // Adding a "check if next array element exists" fix
+                    // Montimage fix: String comparison is made with "equals" rather
+                    // than "=="
+                    if ((i + 1) < criteria.length
+                            && criteria[i].getAttributeName().equals(criteria[i + 1].getAttributeName())) {
+                        //type attribute >= value_min AND attribute <= value_max
+                        if ((">=".equals(criteria[i].getOperator()) || ">".equals(criteria[i].getOperator()))
+                                && ("<".equals(criteria[i + 1].getOperator())
+                                        || "<=".equals(criteria[i + 1].getOperator()))) {
                             // generate trapdoors for that range
                             ListTrapdoorForRange = generateTrapdoorforRange(criteria[i], criteria[i + 1], y_Key, z_Key);
                             i = i + 1;
                         }
                         //type attribute <= value_max AND attribute >= value_min
-                        else if ((criteria[i].getOperator() == "<=" || criteria[i].getOperator() == "<")
-                                && (criteria[i + 1].getOperator() == ">" || criteria[i + 1].getOperator() == ">=")) {
+                        else if (("<=".equals(criteria[i].getOperator()) || "<".equals(criteria[i].getOperator()))
+                                && (">".equals(criteria[i + 1].getOperator())
+                                        || ">=".equals(criteria[i + 1].getOperator()))) {
 
                             // generate trapdoors for that range
                             ListTrapdoorForRange = generateTrapdoorforRange(criteria[i + 1], criteria[i], y_Key, z_Key);
                             i = i + 1;
                         }
-                    } else if (criteria[i].getOperator() == "<=" || criteria[i].getOperator() == "<") {
+                    } else if ("<=".equals(criteria[i].getOperator()) || "<".equals(criteria[i].getOperator())) {
                         // generate trapdoors for that range
                         Criteria fake = new Criteria(null, null, null);
                         ListTrapdoorForRange = generateTrapdoorforRange(fake, criteria[i], y_Key, z_Key);
-                    } else if (criteria[i].getOperator() == ">=" || criteria[i].getOperator() == ">") {
+                    } else if (">=".equals(criteria[i].getOperator()) || ">".equals(criteria[i].getOperator())) {
                         // generate trapdoors for that range
                         Criteria fake = new Criteria(null, null, null);
                         ListTrapdoorForRange = generateTrapdoorforRange(criteria[i], fake, y_Key, z_Key);
