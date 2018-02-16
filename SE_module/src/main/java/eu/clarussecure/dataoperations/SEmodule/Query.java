@@ -30,9 +30,9 @@ public class Query {
     static List<DataOperationCommand> search_with_SE(String[] attributeNames, Criteria[] criteria, int[] indexes)
             throws Exception {
 
-        List<DataOperationCommand> myList = new ArrayList<DataOperationCommand>();
+        List<DataOperationCommand> myList = new ArrayList<>();
         SearchableEncryptionCommand SE_search_query = new SearchableEncryptionCommand();
-        ArrayList<Criteria> myCriteria = new ArrayList<Criteria>();
+        ArrayList<Criteria> myCriteria = new ArrayList<>();
 
         String keyword;
         String[] trap = null;
@@ -47,18 +47,17 @@ public class Query {
 
         logger.info("\nGenerating trapdoors...\n");
         logger.info("Number of criteria = " + criteria.length);
-        for (int tt = 0; tt < criteria.length; tt++) {
-            logger.info(
-                    criteria[tt].getAttributeName() + "" + criteria[tt].getOperator() + "" + criteria[tt].getValue());
+        for (Criteria criterion : criteria) {
+            logger.info(criterion.getAttributeName() + "" + criterion.getOperator() + "" + criterion.getValue());
         }
         for (int i = 0; i < criteria.length; i++) {
             if (!(criteria[i].getAttributeName() == null || criteria[i].getValue() == null)) {
                 //test if it is a range query 
                 if (!Store.ranges.isEmpty() && (Store.ranges.containsKey(criteria[i].getAttributeName()))
-                        && (criteria[i].getOperator() == ">=" || criteria[i].getOperator() == ">"
-                                || criteria[i].getOperator() == "<=" || criteria[i].getOperator() == "<")) {
+                        && (">=".equals(criteria[i].getOperator()) || ">".equals(criteria[i].getOperator())
+                                || "<=".equals(criteria[i].getOperator()) || "<".equals(criteria[i].getOperator()))) {
                     //range query !!!
-                    Map<String, String[]> ListTrapdoorForRange = new HashMap<String, String[]>();
+                    Map<String, String[]> ListTrapdoorForRange = new HashMap<>();
                     myCriteria.add(new Criteria("", "(", ""));
 
                     // Montimage fix: This line generates an ArrayIndexOutOfBounds
@@ -95,7 +94,7 @@ public class Query {
                         ListTrapdoorForRange = generateTrapdoorforRange(criteria[i], fake, y_Key, z_Key);
                     }
 
-                    SortedSet<String> keywords = new TreeSet<String>(ListTrapdoorForRange.keySet());
+                    SortedSet<String> keywords = new TreeSet<>(ListTrapdoorForRange.keySet());
                     for (Iterator<String> it = keywords.iterator(); it.hasNext();) {
                         keyword = it.next();
                         System.out.println("Trapdoor for keyword" + keyword);
@@ -126,6 +125,7 @@ public class Query {
                     try {
                         trap = generateTrapdoor(keyword, y_Key, z_Key);
                     } catch (IOException e) {
+                        e.printStackTrace();
                         System.out.println("[FAILURE:] Trapdoor generation for keyword " + keyword);
                     }
 
@@ -182,7 +182,7 @@ public class Query {
 
     private static Map<String, String[]> generateTrapdoorforRange(Criteria rangeInf, Criteria rangeSup,
             SecretKey prfKey, SecretKey permKey) throws Exception {
-        Map<String, String[]> ListTrapdoorForRange = new HashMap<String, String[]>();
+        Map<String, String[]> ListTrapdoorForRange = new HashMap<>();
         String a;
         if (rangeInf.getAttributeName() != null) {
             a = rangeInf.getAttributeName();
@@ -227,16 +227,17 @@ public class Query {
         double x = (((double) (Integer.valueOf(rangeInf.getValue())) - (double) initial) / (double) range);
         double y = (((double) (Integer.valueOf(rangeSup.getValue()) + 1) - (double) initial) / (double) range);
 
-        if (x % 1 == 0 && rangeInf.getOperator() == ">=") {
+        // Montimage fix: String comparison using "equals" instead of "=="
+        if (x % 1 == 0 && ">=".equals(rangeInf.getOperator())) {
             inf_discrete = Integer.valueOf(rangeInf.getValue());
-        } else if (x % 1 == 0 && rangeInf.getOperator() == ">") {
+        } else if (x % 1 == 0 && ">".equals(rangeInf.getOperator())) {
             inf_discrete = ((int) (x + 1)) * range + initial;
         } else {
             inf_discrete = ((int) Math.ceil(x)) * range + initial;
         }
-        if (y % 1 == 0 && rangeSup.getOperator() == "<=") {
+        if (y % 1 == 0 && "<=".equals(rangeSup.getOperator())) {
             sup_discrete = Integer.valueOf(rangeSup.getValue());
-        } else if (y % 1 == 0 && rangeSup.getOperator() == "<") {
+        } else if (y % 1 == 0 && "<".equals(rangeSup.getOperator())) {
             sup_discrete = ((int) (y - 1)) * range + initial;
         } else {
             sup_discrete = ((int) Math.floor(y)) * range + initial;
@@ -245,7 +246,7 @@ public class Query {
         if (inf_discrete > Integer.valueOf(rangeInf.getValue())) {
             for (int ii = 0; ii < inf_discrete - Integer.valueOf(rangeInf.getValue()); ii++) {
                 //compute trapdoor for rangeInf (18) to inf_discrete (20)
-                if (ii == 0 && rangeInf.getOperator() != ">=")
+                if (ii == 0 && !">=".equals(rangeInf.getOperator()))
                     continue;
                 int val = Integer.valueOf(rangeInf.getValue()) + ii;
                 String keyword = a + "=" + "'" + String.format("%0" + ll + "d", val) + "'";
@@ -272,7 +273,7 @@ public class Query {
             }
         }
         //System.out.println("trapdoor for [" + a+"="+ String.format("%0"+ll+"d",Integer.valueOf(rangeSup.getValue())) + "]");
-        if (rangeSup.getOperator() == "<=" && Integer.valueOf(rangeSup.getValue()) != sup_discrete) {
+        if ("<=".equals(rangeSup.getOperator()) && Integer.valueOf(rangeSup.getValue()) != sup_discrete) {
             String keyword = a + "=" + "'" + String.format("%0" + ll + "d", Integer.valueOf(rangeSup.getValue())) + "'";
             ListTrapdoorForRange.put(keyword, generateTrapdoor(keyword, prfKey, permKey));
         }
@@ -284,9 +285,9 @@ public class Query {
     public static Map<String, String>[] loadConfig(String filename)
             throws FileNotFoundException, IOException, ClassNotFoundException {
         Map<String, String>[] config = new Map[2];
-        ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename));
-        config = (Map<String, String>[]) in.readObject();
-        in.close();
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
+            config = (Map<String, String>[]) in.readObject();
+        }
         return config;
     }
 

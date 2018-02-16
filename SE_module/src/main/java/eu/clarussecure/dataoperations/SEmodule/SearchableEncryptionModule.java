@@ -351,71 +351,99 @@ public class SearchableEncryptionModule implements DataOperation {
             mapping.put(clearAttributeNames[clearAttributeNames.length - 1],
                     protectedAttributeNames[protectedAttributeNames.length - 1]);
         }
-        // Montimage fix: In case of range queries, the encrypted criteria are
-        // the ones returned by Query.search_with_SE.
-        // TODO
-        /*Criteria[] protectedCriteria = new Criteria[encryptedCriteriaFlags.size()];
-        for (int i = 0; i < protectedCriteria.length; i++) {
-            if (encryptedCriteriaFlags.get(i)) {
-                parts = criteria[i].getAttributeName().split("/");
-                Criteria newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i)];
-                parts[parts.length - 1] = newCriteria.getAttributeName();
-                newCriteria.setAttributeName(mergeAttributeName(parts));
-                protectedCriteria[i] = newCriteria;
-            } else {
-                protectedCriteria[i] = criteria[i];
-            }
-        }*/
-        ArrayList<Criteria> protectedCriteria = new ArrayList<Criteria>();
-        int kk = 0, n = 0;
-        System.out.println("encryptedCriteriaFlags.size()=" + encryptedCriteriaFlags.size());
 
-        for (int i = 0; i < encryptedCriteriaFlags.size(); i++) {
-            System.out.println("i=" + i + "and k=" + kk);
-            if (encryptedCriteriaFlags.get(i)) {
-                parts = criteria[i].getAttributeName().split("/");
-                System.out.println("obfuscated criteria number =" + (encryptedCriteriaIndexes.get(i) + n));
-                Criteria newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i + n)];
-                System.out.println(newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
-                if ("(".equals(newCriteria.getOperator())) {
-                    System.out.println("RANGE QUERY CRITERIA");
-                    protectedCriteria.add(kk, newCriteria);
-                    kk++;
-                    System.out.println("i=" + i + "and k=" + kk);
-                    newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i) + kk];
-                    System.out.println(
-                            newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
-                    while (!")".equals(newCriteria.getOperator())) {
-                        if (!"OR".equals(newCriteria.getOperator().toUpperCase())
-                                && !"AND".equals(newCriteria.getOperator().toUpperCase())) {
-                            parts[parts.length - 1] = newCriteria.getAttributeName();
-                            newCriteria.setAttributeName(mergeAttributeName(parts));
-                        }
-                        protectedCriteria.add(kk, newCriteria);
-                        kk++;
-                        n++;
-                        System.out.println("i=" + i + "and k=" + kk);
-                        newCriteria = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(i) + n];
-                        System.out.println(
-                                newCriteria.getAttributeName() + newCriteria.getOperator() + newCriteria.getValue());
+        ArrayList<Criteria> protectedCriteria = new ArrayList<>();
+        int finalCriteriaPos = 0, protectedCriteriaPos = 0;
+
+        for (int origCriteriaPos = 0; origCriteriaPos < encryptedCriteriaFlags.size(); origCriteriaPos++) {
+            if (encryptedCriteriaFlags.get(origCriteriaPos)) {
+                parts = criteria[origCriteriaPos].getAttributeName().split("/");
+                Criteria newCriterion = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(origCriteriaPos)];
+                if ("(".equals(newCriterion.getOperator())) {
+                    // Montimage fix: The idea here is to "translate" the set of
+                    // protected criteria into a single one + a "true" criterion
+                    // In this way, we will match the number of protected criteria
+                    // with the original ones
+
+                    // Check if the next "unprotected" criterion  concerns the same
+                    // Attribute. If so, this is a range with two limits
+                    boolean singleLimitRange = false;
+                    try {
+                        if (!criteria[origCriteriaPos].getAttributeName().equals(criteria[origCriteriaPos+1].getAttributeName()) &&
+                                !"=".equals(criteria[origCriteriaPos].getOperator()) &&
+                                !"=".equals(criteria[origCriteriaPos+1].getOperator()))
+                            throw new RuntimeException();
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        // The next criteria does not exist
+                        System.out.println("aqui");
+                        singleLimitRange = true;
+                    } catch (RuntimeException e) {
+                        // The next criteria does not concern the same attribute
+                        System.out.println("aqui2");
+                        singleLimitRange = true;
                     }
-                    i++;
-                } else {
-                    parts[parts.length - 1] = newCriteria.getAttributeName();
-                    newCriteria.setAttributeName(mergeAttributeName(parts));
-                    protectedCriteria.add(kk, newCriteria);
-                    kk++;
-                    System.out.println("i=" + i + "and k=" + kk);
 
+                    // This is the new criterion to fill.
+                    // The initial values will be updated as the set is analysed
+                    Criteria recomposedCriterion = new Criteria("", "", "(");
+                    // This is the start of the expanded range query.
+                    PROTECTED_RANGE_LOOP: for (protectedCriteriaPos++; // ignore the "(" and start with the next protected criterion
+                    (newCriterion = searchQuery.getCriteria()[encryptedCriteriaIndexes.get(origCriteriaPos)
+                            + protectedCriteriaPos]) != null && !")".equals(newCriterion.getOperator()); // analyse next criterion and break condition
+                    protectedCriteriaPos++) {
+                        switch (newCriterion.getOperator()) {
+                        case "IN":
+                            recomposedCriterion.setAttributeName(newCriterion.getAttributeName());
+                            recomposedCriterion.setOperator(newCriterion.getOperator());
+                            recomposedCriterion.setValue(recomposedCriterion.getValue() + newCriterion.getValue());
+                            break;
+                        case "OR":
+                            // A litle of maths: x \in A OR x\in B <=> x \in A UNION B
+                            recomposedCriterion.setValue(recomposedCriterion.getValue() + " UNION ");
+                            break;
+                        case "AND":
+                            // A litle of maths: x \in A AND x\in B <=> x \in A INTERSECT B
+                            recomposedCriterion.setValue(recomposedCriterion.getValue() + " INTERSECT ");
+                            break;
+                        case ")":
+                            // We found the break condition
+                            // We advance the origCriteriaPos IFF this is NOT a single
+                            // limit Range (attrib </> val AND attrib </> val)
+                            if (!singleLimitRange)
+                                origCriteriaPos++;
+                            protectedCriteriaPos++;
+                            break PROTECTED_RANGE_LOOP;
+                        default:
+                            // This should not occur
+                            throw new RuntimeException(
+                                    "Default case when searching for range query operator. This should not have been occured");
+                        }
+                    }
+                    // At this point, we only need to add the reconstructed criterion
+                    // to the final list AND the dummy "true" (if applicable).
+                    recomposedCriterion.setValue(recomposedCriterion.getValue() + ")");
+                    parts[parts.length - 1] = recomposedCriterion.getAttributeName();
+                    recomposedCriterion.setAttributeName(mergeAttributeName(parts));
+                    protectedCriteria.add(finalCriteriaPos++, recomposedCriterion);
+                    // The dummy true must be appended IFF this is NOT a single
+                    // limit range query
+                    if (!singleLimitRange)
+                        protectedCriteria.add(finalCriteriaPos++, recomposedCriterion);
+
+                    origCriteriaPos++;
+                } else {
+                    parts[parts.length - 1] = newCriterion.getAttributeName();
+                    newCriterion.setAttributeName(mergeAttributeName(parts));
+                    protectedCriteria.add(finalCriteriaPos++, newCriterion);
                 }
             } else {
-                protectedCriteria.add(kk, criteria[i]);
+                protectedCriteria.add(finalCriteriaPos++, criteria[origCriteriaPos]);
             }
         }
+
         searchQuery.setAttributeNames(clearAttributeNames);
         searchQuery.setProtectedAttributeNames(protectedAttributeNames);
         searchQuery.setMapping(mapping);
-        //searchQuery.setCriteria(protectedCriteria);
         searchQuery.setCriteria(protectedCriteria.toArray(new Criteria[protectedCriteria.size()]));
         return SEquery;
     }
