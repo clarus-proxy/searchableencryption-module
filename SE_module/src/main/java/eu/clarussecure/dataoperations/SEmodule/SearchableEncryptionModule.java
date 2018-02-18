@@ -192,6 +192,7 @@ public class SearchableEncryptionModule implements DataOperation {
             } catch (Exception e) {
                 logger.info("[FAILURE]: Searchable Encryption post");
                 logger.info(e);
+                e.printStackTrace();
                 System.exit(1);
             }
         } else {
@@ -369,9 +370,10 @@ public class SearchableEncryptionModule implements DataOperation {
                     // Attribute. If so, this is a range with two limits
                     boolean singleLimitRange = false;
                     try {
-                        if (!criteria[origCriteriaPos].getAttributeName().equals(criteria[origCriteriaPos+1].getAttributeName()) &&
-                                !"=".equals(criteria[origCriteriaPos].getOperator()) &&
-                                !"=".equals(criteria[origCriteriaPos+1].getOperator()))
+                        if (!criteria[origCriteriaPos].getAttributeName()
+                                .equals(criteria[origCriteriaPos + 1].getAttributeName())
+                                && !"=".equals(criteria[origCriteriaPos].getOperator())
+                                && !"=".equals(criteria[origCriteriaPos + 1].getOperator()))
                             throw new RuntimeException();
                     } catch (ArrayIndexOutOfBoundsException e) {
                         // The next criteria does not exist

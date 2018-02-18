@@ -249,7 +249,7 @@ public class Query {
                 if (ii == 0 && !">=".equals(rangeInf.getOperator()))
                     continue;
                 int val = Integer.valueOf(rangeInf.getValue()) + ii;
-                String keyword = a + "=" + "'" + String.format("%0" + ll + "d", val) + "'";
+                String keyword = a + "=" + String.format("%0" + ll + "d", val);
                 ListTrapdoorForRange.put(keyword, generateTrapdoor(keyword, prfKey, permKey));
             }
         }
@@ -258,8 +258,8 @@ public class Query {
             int val1 = inf_discrete + ii * range;
             int val2 = inf_discrete + (ii + 1) * range - 1;
             //System.out.println("trapdoor for [" + "RANGE_" + a+"="+ String.format("%0"+ll+"d",val1) + "-" + String.format("%0"+ll+"d",val2) +"]");
-            String keyword = "RANGE_" + a + "=" + "'" + String.format("%0" + ll + "d", val1) + "-"
-                    + String.format("%0" + ll + "d", val2) + "'";
+            String keyword = "RANGE_" + a + "=" + String.format("%0" + ll + "d", val1) + "-"
+                    + String.format("%0" + ll + "d", val2);
             ListTrapdoorForRange.put(keyword, generateTrapdoor(keyword, prfKey, permKey));
         }
 
@@ -268,13 +268,13 @@ public class Query {
                 //compute trapdoor for sup_discrete (49) to rangeSup (55)
                 int val = sup_discrete + ii;
                 //System.out.println("trapdoor for [" + a+"="+ String.format("%0"+ll+"d",val) + "]");
-                String keyword = a + "=" + "'" + String.format("%0" + ll + "d", val) + "'";
+                String keyword = a + "=" + String.format("%0" + ll + "d", val);
                 ListTrapdoorForRange.put(keyword, generateTrapdoor(keyword, prfKey, permKey));
             }
         }
         //System.out.println("trapdoor for [" + a+"="+ String.format("%0"+ll+"d",Integer.valueOf(rangeSup.getValue())) + "]");
         if ("<=".equals(rangeSup.getOperator()) && Integer.valueOf(rangeSup.getValue()) != sup_discrete) {
-            String keyword = a + "=" + "'" + String.format("%0" + ll + "d", Integer.valueOf(rangeSup.getValue())) + "'";
+            String keyword = a + "="+ String.format("%0" + ll + "d", Integer.valueOf(rangeSup.getValue()));
             ListTrapdoorForRange.put(keyword, generateTrapdoor(keyword, prfKey, permKey));
         }
 
