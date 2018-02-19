@@ -377,11 +377,9 @@ public class SearchableEncryptionModule implements DataOperation {
                             throw new RuntimeException();
                     } catch (ArrayIndexOutOfBoundsException e) {
                         // The next criteria does not exist
-                        System.out.println("aqui");
                         singleLimitRange = true;
                     } catch (RuntimeException e) {
                         // The next criteria does not concern the same attribute
-                        System.out.println("aqui2");
                         singleLimitRange = true;
                     }
 

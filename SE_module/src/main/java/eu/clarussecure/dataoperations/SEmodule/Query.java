@@ -97,9 +97,9 @@ public class Query {
                     SortedSet<String> keywords = new TreeSet<>(ListTrapdoorForRange.keySet());
                     for (Iterator<String> it = keywords.iterator(); it.hasNext();) {
                         keyword = it.next();
-                        System.out.println("Trapdoor for keyword" + keyword);
+                        //System.out.println("Trapdoor for keyword" + keyword);
                         trap = ListTrapdoorForRange.get(keyword);
-                        System.out.println("[" + trap[0] + ", " + trap[1] + "\n");
+                        //System.out.println("[" + trap[0] + ", " + trap[1] + "\n");
 
                         // Montimage fix: Use Constants.indexName instead "index" as 
                         // the index table column name
@@ -126,11 +126,11 @@ public class Query {
                         trap = generateTrapdoor(keyword, y_Key, z_Key);
                     } catch (IOException e) {
                         e.printStackTrace();
-                        System.out.println("[FAILURE:] Trapdoor generation for keyword " + keyword);
+                        //System.out.println("[FAILURE:] Trapdoor generation for keyword " + keyword);
                     }
 
-                    System.out.println("Trapdoor for keyword " + keyword);
-                    System.out.println("[" + trap[0] + ", " + trap[1] + "]\n");
+                    //System.out.println("Trapdoor for keyword " + keyword);
+                    //System.out.println("[" + trap[0] + ", " + trap[1] + "]\n");
 
                     // Montimage fix: Use Constants.indexName instead "index" as 
                     // the index table column name
@@ -274,7 +274,7 @@ public class Query {
         }
         //System.out.println("trapdoor for [" + a+"="+ String.format("%0"+ll+"d",Integer.valueOf(rangeSup.getValue())) + "]");
         if ("<=".equals(rangeSup.getOperator()) && Integer.valueOf(rangeSup.getValue()) != sup_discrete) {
-            String keyword = a + "="+ String.format("%0" + ll + "d", Integer.valueOf(rangeSup.getValue()));
+            String keyword = a + "=" + String.format("%0" + ll + "d", Integer.valueOf(rangeSup.getValue()));
             ListTrapdoorForRange.put(keyword, generateTrapdoor(keyword, prfKey, permKey));
         }
 
